@@ -1,0 +1,23 @@
+name: HFSPlus independent SO build
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  hfsplus:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build HFSPLUS.so with pinned shared Common
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build --parallel 2
+      - name: Run driver ABI tests
+        run: |
+          ctest --test-dir build --output-on-failure
+          test -f build/HFSPLUS.so
+          nm -D build/HFSPLUS.so | grep -F infiltrator_filesystem_hfsplus_v1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HFSPLUS.so
+          path: build/HFSPLUS.so

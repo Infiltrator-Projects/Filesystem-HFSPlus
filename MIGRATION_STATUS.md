@@ -1,3 +1,10 @@
-# HFSPlus migration — 2026-10-30
+# HFS+ migration
+The native HFS+/HFSX Defrag/Growth Defrag/recovery worker and native parser
+are now built into HFSPLUS.so in this repository, through a typed host-service
+adapter. Defragmenter must load this module and perform the unchanged native
+HFS+ end-to-end tests before its local native engine is removed.
 
-Native source copied unchanged from Infiltrator-Projects/Defragmenter commit 30af892d8897d3aeaeefeac1bfcdb9620a0a5c72. Current import is a **source handoff only** and the old Defragmenter implementation remains active unchanged. This repository does not yet build an independently qualified `HFSPlus.so` with Common ABI/Boot/kernel integration. The `migration/defragmenter/native/` folder preserves the original engine for integration and regression testing. The HFS+ and HFSX variants remain together within this repository.
+The Test Media HFS+ formatter/population source remains in Defragmenter and
+is NOT YET MIGRATED; this commit does not mark the user-requested migration
+complete. The host-service ABI is deliberately format-neutral and contains
+no HFS+ allocation/parsing or placement logic.
