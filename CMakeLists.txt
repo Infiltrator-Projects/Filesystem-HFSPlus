@@ -15,13 +15,14 @@ FetchContent_MakeAvailable(infiltratr_common)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"1.0.0\"\n")
 add_library(hfsplus-driver SHARED
  native/hfsplus_native.c native/hfsplus_worker.c
- compat/legacy_services.c module/hfsplus_module.c)
+ compat/legacy_services.c compat/runtime_alloc.c module/hfsplus_module.c)
 set_source_files_properties(native/hfsplus_worker.c PROPERTIES
  COMPILE_DEFINITIONS "main=ifs_hfsplus_worker_main")
 set_target_properties(hfsplus-driver PROPERTIES
  PREFIX "" OUTPUT_NAME "HFSPLUS" SUFFIX ".so")
 target_compile_definitions(hfsplus-driver PRIVATE _GNU_SOURCE _FILE_OFFSET_BITS=64)
 target_compile_options(hfsplus-driver PRIVATE -Wall -Wextra -Wpedantic -Werror)
+target_link_options(hfsplus-driver PRIVATE -Wl,-z,defs)
 target_include_directories(hfsplus-driver PRIVATE
  "${CMAKE_CURRENT_SOURCE_DIR}/native" "${CMAKE_CURRENT_SOURCE_DIR}/compat"
  "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}")
