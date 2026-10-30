@@ -33,7 +33,7 @@ target_include_directories(hfsplus-driver PRIVATE
 target_link_libraries(hfsplus-driver PRIVATE InfiltratrCommon::Common OpenSSL::Crypto)
 if(BUILD_TESTING)
  add_executable(hfsplus-module-test tests/test_module.c)
- target_include_directories(hfsplus-module-test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+ target_include_directories(hfsplus-module-test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/include")
  target_link_libraries(hfsplus-module-test PRIVATE hfsplus-driver)
  add_test(NAME hfsplus-module-interface COMMAND hfsplus-module-test)
 endif()
