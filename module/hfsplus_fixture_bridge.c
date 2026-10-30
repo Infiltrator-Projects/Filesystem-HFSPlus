@@ -5,6 +5,7 @@
  */
 #include "ifs_hfsplus_fixture_v1.h"
 #include <errno.h>
+int ifs_hfsplus_raw_fixture(const LdtmFilesystemSpec *,const char *,bool);
 static _Thread_local const IfsHfsplusFixtureHostV1 *active;
 uint64_t ldtm_raw_file_bytes(const LdtmFilesystemSpec *s, unsigned n) {
     return active ? active->file_bytes(s,n) : 0u;
