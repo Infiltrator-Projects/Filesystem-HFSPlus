@@ -6,7 +6,7 @@
 #define IFS_HFSPLUS_FIXTURE_V1_H
 #include "test_media_raw.h"
 #define IFS_HFSPLUS_FIXTURE_V1 1u
-typedef struct {
+typedef struct IfsHfsplusFixtureHostV1 {
     uint32_t abi_version;
     uint32_t structure_bytes;
     uint64_t (*file_bytes)(const LdtmFilesystemSpec *, unsigned);

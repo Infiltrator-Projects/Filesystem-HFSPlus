@@ -2,7 +2,7 @@
 #ifndef IFS_HFSPLUS_MODULE_V1_H
 #define IFS_HFSPLUS_MODULE_V1_H
 #include "ifs_defrag_services_v1.h"
-#include "ifs_hfsplus_fixture_v1.h"
+typedef struct IfsHfsplusFixtureHostV1 IfsHfsplusFixtureHostV1;
 #define IFS_HFSPLUS_MODULE_V1 1u
 #define IFS_HFSPLUS_CAP_RUN UINT64_C(1)
 #define IFS_HFSPLUS_CAP_FIXTURE UINT64_C(2)
