@@ -9,7 +9,8 @@ int main(void) {
  CHECK(api->abi_version==1u);
  CHECK(api->structure_bytes>=sizeof(*api));
  CHECK(api->format_id && strcmp(api->format_id,"hfsplus")==0);
- CHECK(api->capabilities==IFS_HFSPLUS_CAP_RUN);
+ CHECK(api->capabilities==(IFS_HFSPLUS_CAP_RUN | IFS_HFSPLUS_CAP_FIXTURE));
+ CHECK(api->fixture!=NULL);
  CHECK(api->run!=NULL);
  char *args[]={"defragmenter-hfsplus-worker","--version",NULL};
  /* No host safety functions: even --version must fail without a trusted host. */
