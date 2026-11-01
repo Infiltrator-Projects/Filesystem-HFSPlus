@@ -1,0 +1,7 @@
+{
+  "repository": "Filesystem-HFSPlus",
+  "module": "HFSPLUS.so",
+  "pdf": "docs/HFSPlus.pdf",
+  "abi": "infiltrator_filesystem_hfsplus_v1",
+  "build_system": "cmake"
+}
