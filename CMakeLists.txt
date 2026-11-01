@@ -38,3 +38,6 @@ if(BUILD_TESTING)
  add_test(NAME hfsplus-module-interface COMMAND hfsplus-module-test)
 endif()
 install(TARGETS hfsplus-driver LIBRARY DESTINATION /System/Filesystems)
+# Install only this filesystem's illustrated PDF beside its native shared object.
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/docs/HFSPlus.pdf"
+        DESTINATION /System/Resources/Documentation/Filesystem-HFSPlus)
