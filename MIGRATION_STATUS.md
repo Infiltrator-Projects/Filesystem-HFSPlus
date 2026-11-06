@@ -1,10 +1,7 @@
-# HFS+ migration
-The native HFS+/HFSX Defrag/Growth Defrag/recovery worker and native parser
-are now built into HFSPLUS.so in this repository, through a typed host-service
-adapter. Defragmenter must load this module and perform the unchanged native
-HFS+ end-to-end tests before its local native engine is removed.
+# HFS+ native source consolidation — 6 November 2026
 
-The Test Media HFS+ formatter/population source remains in Defragmenter and
-is NOT YET MIGRATED; this commit does not mark the user-requested migration
-complete. The host-service ABI is deliberately format-neutral and contains
-no HFS+ allocation/parsing or placement logic.
+All 27 HFS+ native source/design files in central Filesystems main commit `a253fb724ce1fd760a361219281effb6abd71367` were imported into this repository, preserving kernel source attribution and the existing HFS+ Defragmenter module sources. HFS+ and HFSX remain supported variants of this single on-disk format engine, not competing providers.
+
+The Linux `hfsplus.ko` build reads `native/filesystems/hfsplus/` locally. Its `standalone/kernel.json` no longer downloads a historical central Filesystems source snapshot. The `.so` build and qualifying tests remain in this repository, without claiming any unverified cross-platform read/write features.
+
+Before deleting the original central source, the Filesystems manager CMake/CI/test/package references must be detached and the independent kernel build and native installer verified.
