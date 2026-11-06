@@ -1,61 +1,154 @@
-0.06 0.12 0.20 rg 0 744 595 98 re f
-0.02 0.58 0.60 rg 48 741 87 4 re f
-BT /F2 12 Tf 0.65 0.87 0.91 rg 1 0 0 1 48 801 Tm (INFILTRATOR / FILESYSTEMS) Tj ET
-BT /F2 20 Tf 1 1 1 rg 1 0 0 1 48 771 Tm (HFSPlus - format and project guide) Tj ET
-0.94 0.97 0.97 rg 48 674 498 46 re f
-BT /F2 14 Tf 0.02 0.42 0.47 rg 1 0 0 1 61 699 Tm (FILESYSTEM BUILD GUIDE) Tj ET
-BT /F1 10 Tf 0.07 0.14 0.24 rg 1 0 0 1 61 683 Tm (Portable Debian package and locally compiled native installer.) Tj ET
-BT /F2 14 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 642 Tm (WHAT IS IT?) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 49 615 Tm (HFS+ hierarchical Macintosh filesystem with catalog and extent metadata.) Tj ET
-BT /F2 13 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 549 Tm (CONCEPTUAL ON-DISK STRUCTURE) Tj ET
-BT /F1 10 Tf 0.35 0.42 0.47 rg 1 0 0 1 48 526 Tm (Format-specific structures vary; this is not a sector map.) Tj ET
-0.06 0.44 0.49 rg 48 445 116 62 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 60 478 Tm (MEDIA) Tj ET
-BT /F1 9 Tf 0.9 0.96 0.97 rg 1 0 0 1 60 459 Tm (stage 1) Tj ET
-0.09 0.52 0.56 rg 175 445 116 62 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 187 478 Tm (METADATA) Tj ET
-BT /F1 9 Tf 0.9 0.96 0.97 rg 1 0 0 1 187 459 Tm (stage 2) Tj ET
-0.12 0.62 0.57 rg 302 445 116 62 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 314 478 Tm (ALLOCATION) Tj ET
-BT /F1 9 Tf 0.9 0.96 0.97 rg 1 0 0 1 314 459 Tm (stage 3) Tj ET
-0.16 0.42 0.53 rg 429 445 116 62 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 441 478 Tm (PAYLOAD) Tj ET
-BT /F1 9 Tf 0.9 0.96 0.97 rg 1 0 0 1 441 459 Tm (stage 4) Tj ET
-BT /F2 14 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 406 Tm (SOURCE AND QUALIFICATION) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 49 381 Tm (Filesystem-HFSPlus has an independent Infiltrator-Projects source) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 49 362 Tm (repository. Its published README does not establish a qualified standalone) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 49 343 Tm (Debian or RUN release. Driver capability, runtime integration and) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 49 324 Tm (media-safety claims qualification reports.) Tj ET
-BT /F2 14 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 288 Tm (TARGET INSTALLATION LAYOUT) Tj ET
-0.94 0.97 0.97 rg 48 183 498 86 re f
-BT /F1 10 Tf 0.07 0.14 0.24 rg 1 0 0 1 62 247 Tm (/System/Filesystems/HFSPLUS.so) Tj ET
-BT /F1 10 Tf 0.07 0.14 0.24 rg 1 0 0 1 62 225 Tm (/System/Resources/Documentation/) Tj ET
-BT /F2 11 Tf 0.02 0.48 0.52 rg 1 0 0 1 62 204 Tm (HFSPlus.pdf) Tj ET
-BT /F1 10 Tf 0.35 0.42 0.47 rg 1 0 0 1 48 149 Tm (The installation page gives the exact packaged file paths.) Tj ET
-BT /F1 10 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 101 Tm (Engineering source and qualification reports belong in GitHub.) Tj ET
-0.82 0.85 0.86 rg 48 61 500 1 re f
-BT /F1 9 Tf 0.34 0.39 0.43 rg 1 0 0 1 48 40 Tm (Filesystem-HFSPlus  |  Preliminary user guide  |  30 October 2026) Tj ET
-
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 01) Tj ET
+BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 694.0 Tm (OFFICIAL FORMAT / CHRONOLOGY / ENGINEERING) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 650.0 Tm (Apple's 1998 successor to HFS expanded allocation addressing and Unicode names while) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 633.0 Tm (retaining B-tree catalogs and dual file forks.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 603.0 Tm (This guide documents the original format's technical architecture, history and independent) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 586.0 Tm (source references. InfiltratorOS modules and install packages are implementation) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 569.0 Tm (artefacts, not the authority for the historic on-disk definition.) Tj ET
+BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 539.0 Tm (CONCEPTUAL MEDIA MAP) Tj ET
+0.05 0.36 0.47 rg 50 455 238 67 re f
+BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 487.0 Tm (VOLUME HEADER) Tj ET
+BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 468.0 Tm (1024-byte offset + extents) Tj ET
+0.08 0.39 0.49 rg 301 455 238 67 re f
+BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 487.0 Tm (ALLOCATION FILE) Tj ET
+BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 468.0 Tm (Bitmap of allocation blocks) Tj ET
+0.10 0.43 0.52 rg 50 373 238 67 re f
+BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 405.0 Tm (CATALOG B-TREE) Tj ET
+BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 386.0 Tm (CNIDs and fork metadata) Tj ET
+0.13 0.46 0.54 rg 301 373 238 67 re f
+BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 405.0 Tm (EXTENTS / ATTRIBUTES) Tj ET
+BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 386.0 Tm (Overflow and extended metadata) Tj ET
+BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 332.0 Tm (CONTENTS) Tj ET
+BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 305.0 Tm (1. Historical chronology) Tj ET
+BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 282.0 Tm (2. Original on-disk architecture) Tj ET
+BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 259.0 Tm (3. Allocation and directories) Tj ET
+BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 236.0 Tm (4. Integrity and recovery) Tj ET
+BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 213.0 Tm (5. Design rationale and limitations) Tj ET
+BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 190.0 Tm (6. InfiltratorOS integration boundary) Tj ET
 %%Page
-0.06 0.12 0.20 rg 0 744 595 98 re f
-BT /F2 20 Tf 1 1 1 rg 1 0 0 1 48 778 Tm (Build and installation) Tj ET
-BT /F2 14 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 700 Tm (Filesystem-HFSPlus) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 673 Tm (Release @VERSION@) Tj ET
-BT /F2 13 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 620 Tm (Installed files) Tj ET
-BT /F3 8 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 591 Tm (/System/Filesystems/HFSPLUS.so) Tj ET
-BT /F3 8 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 568 Tm (/System/Resources/Documentation/Filesystem-HFSPlus.pdf) Tj ET
-BT /F3 8 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 545 Tm (/System/Kernel/Filesystems/hfsplus.ko) Tj ET
-BT /F2 13 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 475 Tm (Debian package) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 450 Tm (Install the prebuilt files with dpkg -i followed by the Debian filename.) Tj ET
-BT /F2 13 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 400 Tm (Manual RUN) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 375 Tm (Run bash followed by the native installer filename.) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 353 Tm (The installer compiles the shared object and generates this manual locally.) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 331 Tm (It also compiles the Linux adapter against the running kernel headers.) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 309 Tm (Use --kernel-build DIRECTORY to select another prepared kernel build.) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 287 Tm (The manual installer replaces all three files.) Tj ET
-BT /F2 13 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 239 Tm (InfiltratorOS installation) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 214 Tm (The OS installer builds a missing or older shared object.) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 192 Tm (It verifies the manual independently and repairs it from its matching release.) Tj ET
-BT /F1 11 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 170 Tm (The kernel module is stored for manual use under its single filename.) Tj ET
-BT /F1 10 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 110 Tm (The package metadata records the source revision and SHA-256 checksums.) Tj ET
-BT /F1 9 Tf 0.07 0.14 0.24 rg 1 0 0 1 48 40 Tm (Filesystem-HFSPlus | Build guide | @VERSION@) Tj ET
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 02) Tj ET
+BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (HISTORICAL CHRONOLOGY) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (HFS Plus arrived with Mac OS 8.1 in 1998 as Mac OS Extended. Apple retained the familiar) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (Macintosh catalog, extent and fork concepts while replacing limitations of original HFS.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (Apple's TN1150 describes smaller average allocation-block waste on larger drives as a) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (central motivation and specifies differences in filenames and metadata representation.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (During Mac OS X's lifetime, HFS Plus acquired optional journalling, hard-link handling,) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (extensive permissions/attributes and the case-sensitive HFSX variant. APFS later replaced) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (it as the preferred modern Apple filesystem on many devices. HFS Plus and HFSX must be) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (identified as distinct modes and not treated as identical to original HFS.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 03) Tj ET
+BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ORIGINAL ON-DISK ARCHITECTURE) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The HFS Plus Volume Header is located 1024 bytes from the start of the volume. The format) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (organises its special metadata as files: allocation, catalog, extents overflow, attributes) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (and startup files, alongside user file forks. The catalog, extents and attributes) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (structures use B-trees with node sizes and key formats specified by the format.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (HFS Plus identifies allocation blocks with 32-bit numbers, permitting many more allocation) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (units than original HFS. Multi-byte fields are big-endian. File and folder identifiers are) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (CNIDs. Fork data descriptors include logical size, clump size, allocated blocks and) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (extents, while overflow records extend the on-inode extent capacity.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 04) Tj ET
+BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ALLOCATION AND DIRECTORIES) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The allocation file records used blocks, while the catalog B-tree maps parent IDs and) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (Unicode names to file and directory records. HFS Plus names use a 16-bit length and up to) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (255 UTF-16 code units with a version-specific canonical decomposition/collation scheme. A) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (normal Unicode casefold or current host locale is not equivalent to Apple's defined) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 608.0 Tm (comparison algorithm.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (A file retains both data and resource forks. Attributes B-trees can contain additional) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (named metadata. HFSX adds support for case-sensitive keys and specific comparison rules.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (Hard links and symbolic links in Mac OS X use defined catalog and metadata-directory) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (conventions rather than raw Unix inodes.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 05) Tj ET
+BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INTEGRITY AND RECOVERY) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The optional journal records metadata updates and permits quicker repair after an unsafe) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (shutdown. Apple's technical note makes clear that the journal is for volume structures,) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (not a guarantee of full user-data persistence. Journal replay must preserve transaction) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (order and issue flushes before advancing the journal start pointer.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (A full checker validates catalog and extents tree nodes, CNIDs, link counts, allocation) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (ownership, journal state and fork extents. Duplicate or orphaned metadata-directory) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (entries and mismatched attribute records need special handling. Journal existence does not) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (eliminate the possibility of damaged metadata or lost data during storage faults.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 06) Tj ET
+BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (DESIGN RATIONALE AND LIMITATIONS) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (HFS Plus solves several practical HFS limits while retaining compatibility with Macintosh) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (dual-fork and Finder conventions. Its Unicode rules are historically specific and can) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (differ from modern Unicode normalization. Integer timestamps use a 1904 epoch and have) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (representational limits; time conversion must not assume Unix epochs.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (It is a mutable B-tree format, not intrinsically copy-on-write. The case-sensitive HFSX) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (variant and optional journal require explicit detection. APFS snapshots, encryption) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (domains and object maps cannot be projected backward onto HFS Plus merely because both are) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (Apple-designed.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 07) Tj ET
+BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INFILTRATOROS INTEGRATION BOUNDARY) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (HFSPLUS.so must respect Apple's HFS Plus Volume Format specification including big-endian) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (structures, catalog keys, forks and allocation bitmap. Any HFSX support must be specified) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (separately; shared implementation code does not make every HFS Plus volume case-sensitive.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 612.0 Tm (The exact Apple TN1150 document is the primary technical authority. Native `.so`, optional) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (Linux `.ko` and InfiltratorOS packaging are separate from the on-media standard and) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (require independent qualification.) Tj ET
+%%Page
+0.05 0.13 0.22 rg 0 749 595 93 re f
+0.04 0.54 0.60 rg 50 747 115 4 re f
+0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
+BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
+BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
+BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 08) Tj ET
+BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (PRIMARY SOURCE REFERENCES) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (These primary technical documents and near-contemporary references provide provenance for) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (the design history and on-disk structures. For exact field sizes or a particular format) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (revision, consult the original specifications and source code, not the conceptual cover) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (illustration.) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (1. Apple TN1150, HFS Plus Volume Format \(on-disk normative description\)) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 565.0 Tm (https://developer.apple.com/library/archive/technotes/tn/tn1150.html) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 535.0 Tm (2. Contemporary introduction to original Macintosh HFS) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 505.0 Tm (https://preserve.mactech.com/articles/mactech/Vol.02/02.01/HFS/index.html) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our independent .so, optional .ko, build procedures and test evidence describe a separate) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source-level history in this PDF cannot itself qualify production) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
