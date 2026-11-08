@@ -351,21 +351,45 @@ int hfsplus_delete_cat(u32 cnid, struct inode *dir, const struct qstr *str)
 
 	if (!str) {
 		int len;
+		u16 thread_type, name_len;
 
 		hfsplus_cat_build_key_with_cnid(sb, fd.search_key, cnid);
 		err = hfs_brec_find(&fd, hfs_find_rec_by_key);
 		if (err)
 			goto out;
 
-		off = fd.entryoffset +
-			offsetof(struct hfsplus_cat_thread, nodeName);
+		/*
+		 * This lookup must return a catalog thread, not an arbitrary
+		 * record.  Its on-disk Unicode length is untrusted and must fit
+		 * the fixed-size catalog key AND the current B-tree record.
+		 */
+		thread_type = hfs_bnode_read_u16(fd.bnode, fd.entryoffset);
+		if (thread_type != HFSPLUS_FOLDER_THREAD &&
+		    thread_type != HFSPLUS_FILE_THREAD) {
+			err = -EIO;
+			goto out;
+		}
+
+		off = offsetof(struct hfsplus_cat_thread, nodeName);
+		if (fd.entrylength < off + sizeof(__be16)) {
+			err = -EIO;
+			goto out;
+		}
 		fd.search_key->cat.parent = cpu_to_be32(dir->i_ino);
 		hfs_bnode_read(fd.bnode,
-			&fd.search_key->cat.name.length, off, 2);
-		len = be16_to_cpu(fd.search_key->cat.name.length) * 2;
+			&fd.search_key->cat.name.length,
+			fd.entryoffset + off, sizeof(__be16));
+		name_len = be16_to_cpu(fd.search_key->cat.name.length);
+		if (name_len > HFSPLUS_MAX_STRLEN ||
+		    name_len * sizeof(hfsplus_unichr) >
+		    fd.entrylength - off - sizeof(__be16)) {
+			err = -EIO;
+			goto out;
+		}
+		len = name_len * sizeof(hfsplus_unichr);
 		hfs_bnode_read(fd.bnode,
 			&fd.search_key->cat.name.unicode,
-			off + 2, len);
+			fd.entryoffset + off + sizeof(__be16), len);
 		fd.search_key->key_len = cpu_to_be16(6 + len);
 	} else {
 		err = hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino, str);
