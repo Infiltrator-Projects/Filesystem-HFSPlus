@@ -371,7 +371,7 @@ int hfsplus_delete_cat(u32 cnid, struct inode *dir, const struct qstr *str)
 		}
 
 		off = offsetof(struct hfsplus_cat_thread, nodeName);
-		if (fd.entrylength < off + sizeof(__be16)) {
+		if (fd.entrylength < off + (int)sizeof(__be16)) {
 			err = -EIO;
 			goto out;
 		}
@@ -380,13 +380,15 @@ int hfsplus_delete_cat(u32 cnid, struct inode *dir, const struct qstr *str)
 			&fd.search_key->cat.name.length,
 			fd.entryoffset + off, sizeof(__be16));
 		name_len = be16_to_cpu(fd.search_key->cat.name.length);
-		if (name_len > HFSPLUS_MAX_STRLEN ||
-		    name_len * sizeof(hfsplus_unichr) >
-		    fd.entrylength - off - sizeof(__be16)) {
+		if (name_len > HFSPLUS_MAX_STRLEN) {
 			err = -EIO;
 			goto out;
 		}
-		len = name_len * sizeof(hfsplus_unichr);
+		len = (int)name_len * (int)sizeof(hfsplus_unichr);
+		if (len > fd.entrylength - off - (int)sizeof(__be16)) {
+			err = -EIO;
+			goto out;
+		}
 		hfs_bnode_read(fd.bnode,
 			&fd.search_key->cat.name.unicode,
 			fd.entryoffset + off + sizeof(__be16), len);
