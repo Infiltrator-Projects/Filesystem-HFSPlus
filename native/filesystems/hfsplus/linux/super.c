@@ -251,8 +251,10 @@ static int hfsplus_sync_fs(struct super_block *sb, int wait)
 				  sbi->part_start + sbi->sect_count - 2,
 				  sbi->s_backup_vhdr_buf, NULL, REQ_OP_WRITE |
 				  REQ_SYNC);
+	/* Propagate a failed backup volume-header write: the existing
+	 * assignment reversed source and destination and discarded errors. */
 	if (!error)
-		error2 = error;
+		error = error2;
 out:
 	mutex_unlock(&sbi->alloc_mutex);
 	mutex_unlock(&sbi->vh_mutex);
