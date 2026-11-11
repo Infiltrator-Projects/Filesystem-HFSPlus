@@ -9,9 +9,11 @@
 #define MEDIA_BYTES (1024u*1024u)
 static unsigned char media[MEDIA_BYTES];
 static int fail_read;
+static uint32_t logical_sector=512u,maximum_read=512u;
 static int rd(void *ctx,uint64_t at,void *data,uint32_t n) {
     (void)ctx;
-    if(fail_read || !data || at>MEDIA_BYTES || n>MEDIA_BYTES-at) return -1;
+    if(fail_read || !data || (at%logical_sector) || (n%logical_sector) ||
+       n>maximum_read || at>MEDIA_BYTES || n>MEDIA_BYTES-at)return -1;
     memcpy(data,media+(size_t)at,n);return 0;
 }
 static void *allocate(void *ctx,size_t n){(void)ctx;return malloc(n);}
@@ -83,6 +85,22 @@ int main(void) {
           volume && volume!=stale && info.variant==5u);
     CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
     CHECK(core->unmount(volume)==IFS_FS_OK);
+    /* Host I/O on 4K-logical-sector volumes must be sector aligned,
+     * despite the HFS+ and HFSX volume header at byte 1024. */
+    host.logical_sector_bytes=4096u;
+    host.physical_sector_bytes=4096u;
+    host.maximum_transfer_bytes=4096u;
+    logical_sector=4096u;maximum_read=4096u;
+    CHECK(ifs_fs_host_v2_valid(&host));
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==5u);
+    info.structure_bytes=sizeof(info);
+    CHECK(core->mount(&host,&volume,&info)==IFS_FS_OK &&
+          info.variant==5u && info.free_bytes==286720u);
+    CHECK(core->unmount(volume)==IFS_FS_OK);
+    logical_sector=512u;maximum_read=512u;
+    host.logical_sector_bytes=512u;
+    host.physical_sector_bytes=512u;
+    host.maximum_transfer_bytes=512u;
     u16(1026u,4u);
     CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND);
     u16(1026u,5u);

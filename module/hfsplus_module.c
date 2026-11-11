@@ -22,10 +22,12 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
     uint32_t block_bytes,total_blocks,free_blocks;
     if(!variant || !ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
     *variant=0u;
-    if(host->volume_bytes<1536u || host->maximum_transfer_bytes<sizeof(header))
-        return IFS_FS_NOT_FOUND;
-    if(host->read_at(host->context,1024u,header,sizeof(header))!=0)
-        return IFS_FS_IO_ERROR;
+    if(host->volume_bytes<1536u)return IFS_FS_NOT_FOUND;
+    {
+        int rc=ifs_fs_host_read_bytes_v2(host,1024u,header,
+                                        (uint32_t)sizeof(header));
+        if(rc!=IFS_FS_OK)return rc;
+    }
     sig=be16(header);
     version=be16(header+2u);
     if((sig!=UINT16_C(0x482b) || version!=4u) &&
