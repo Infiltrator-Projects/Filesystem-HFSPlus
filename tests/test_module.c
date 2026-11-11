@@ -29,11 +29,16 @@ int main(void) {
     const IfsFsModuleApiV2 *api=infiltrator_filesystem_api_v2();
     CHECK(ifs_fs_api_v2_valid(api,"hfsplus"));
     CHECK(api->runtime_profiles==IFS_FS_PROFILE_HOSTED);
-    CHECK(api->group_mask==IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE));
+    CHECK(api->group_mask==(IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)));
     const IfsFsCoreOpsV2 *core=
         (const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
-    CHECK(core && core->header.capabilities==IFS_FS_CORE_PROBE);
-    CHECK(core->probe && !core->mount && !core->write);
+    const IfsFsVolumeOpsV2 *ops=
+        (const IfsFsVolumeOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_VOLUME);
+    CHECK(core && core->header.capabilities==(IFS_FS_CORE_PROBE|IFS_FS_CORE_MOUNT));
+    CHECK(core->probe && core->mount && core->unmount && !core->write);
+    CHECK(ops && ops->header.capabilities==IFS_FS_VOLUME_QUERY &&
+          ops->query && !ops->format && !ops->repair);
     CHECK(!ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG));
     IfsFsHostRuntimeV2 host={0};
     host.abi_version=IFS_FS_HOST_ABI_V2;
@@ -52,8 +57,32 @@ int main(void) {
     u16(1024u,0x482bu);u16(1026u,4u);
     u32(1024u+40u,4096u);u32(1024u+44u,150u);u32(1024u+48u,70u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4u);
+    IfsFsVolumeInfoV2 info={0},snapshot={0};
+    void *volume=NULL,*stale=NULL;
+    info.structure_bytes=sizeof(info);
+    CHECK(core->mount(&host,&volume,&info)==IFS_FS_OK && volume);
+    stale=volume;
+    CHECK(info.variant==4u && info.block_bytes==4096u &&
+          info.total_bytes==614400u && info.free_bytes==286720u &&
+          info.max_name_bytes==765u);
+    snapshot.structure_bytes=sizeof(snapshot);
+    CHECK(ops->query(volume,&snapshot)==IFS_FS_OK &&
+          snapshot.total_bytes==info.total_bytes);
+    {
+        void *duplicate=NULL;
+        CHECK(core->mount(&host,&duplicate,&snapshot)==IFS_FS_BUSY);
+        CHECK(!duplicate);
+    }
+    CHECK(core->unmount(volume)==IFS_FS_OK);
+    CHECK(core->unmount(stale)==IFS_FS_INVALID);
+    CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
     u16(1024u,0x4858u);u16(1026u,5u);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==5u);
+    info.structure_bytes=sizeof(info);
+    CHECK(core->mount(&host,&volume,&info)==IFS_FS_OK &&
+          volume && volume!=stale && info.variant==5u);
+    CHECK(ops->query(stale,&snapshot)==IFS_FS_INVALID);
+    CHECK(core->unmount(volume)==IFS_FS_OK);
     u16(1026u,4u);
     CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND);
     u16(1026u,5u);
@@ -65,6 +94,6 @@ int main(void) {
     fail_read=1;CHECK(core->probe(&host,&variant)==IFS_FS_IO_ERROR);
     fail_read=0;host.read_at=NULL;
     CHECK(core->probe(&host,&variant)==IFS_FS_INVALID);
-    puts("HFSPLUS-STRICT-V2-PROBE-PASS");
+    puts("HFSPLUS-STRICT-V2-MOUNT-QUERY-PASS");
     return 0;
 }
