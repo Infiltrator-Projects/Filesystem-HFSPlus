@@ -27,6 +27,10 @@ static void u32(unsigned n,uint32_t v) {
 }
 extern const IfsFsModuleApiV2 *infiltrator_filesystem_api_v2(void);
 #define CHECK(x) do {if(!(x)){fprintf(stderr,"HFS+ V2 failed: %s at %d\n",#x,__LINE__);return 1;}}while(0)
+static int forbidden_write(void *ctx,uint64_t at,const void *src,uint32_t n)
+{ (void)ctx;(void)at;(void)src;(void)n;return -1; }
+static int forbidden_flush(void *ctx)
+{ (void)ctx;return -1; }
 int main(void) {
     const IfsFsModuleApiV2 *api=infiltrator_filesystem_api_v2();
     CHECK(ifs_fs_api_v2_valid(api,"hfsplus"));
@@ -62,6 +66,14 @@ int main(void) {
     IfsFsVolumeInfoV2 info={0},snapshot={0};
     void *volume=NULL,*stale=NULL;
     info.structure_bytes=sizeof(info);
+    host.capabilities=IFS_FS_HOST_EXCLUSIVE|IFS_FS_HOST_DURABLE;
+    host.write_at=forbidden_write;host.flush=forbidden_flush;
+    CHECK(ifs_fs_host_v2_valid(&host));
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK);
+    CHECK(core->mount(&host,&volume,&info)==IFS_FS_ACCESS && !volume);
+    host.capabilities=IFS_FS_HOST_READ_ONLY;
+    host.write_at=NULL;host.flush=NULL;
+    CHECK(ifs_fs_host_v2_valid(&host));
     CHECK(core->mount(&host,&volume,&info)==IFS_FS_OK && volume);
     stale=volume;
     CHECK(info.variant==4u && info.block_bytes==4096u &&

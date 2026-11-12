@@ -75,6 +75,10 @@ static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
     if(!volume || !info || info->structure_bytes<sizeof(*info))
         return IFS_FS_INVALID;
     *volume=NULL;
+    if(!ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
+    /* HFS+/HFSX CORE.MOUNT is not a write-capable transaction. Never
+     * inherit permissions from an exclusive, writable host runtime. */
+    if(!(host->capabilities & IFS_FS_HOST_READ_ONLY))return IFS_FS_ACCESS;
     if(session.active || session.generation==UINTPTR_MAX)return IFS_FS_BUSY;
     result=examine(host,&variant,&measured);
     if(result!=IFS_FS_OK)return result;
