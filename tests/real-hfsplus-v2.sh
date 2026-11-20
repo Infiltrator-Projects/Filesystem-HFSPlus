@@ -12,7 +12,7 @@ truncate -s 128M "$image"
 timeout 45 mkfs.hfsplus -v NativeHFSPlus "$image"
 head -c 65536 /dev/urandom > "$work/kernel-payload"
 head -c 32768 /dev/urandom > "$work/initrd-payload"
-printf 'y\n' | timeout 30 hpmount "$image"
+printf 'y\n' | timeout 30 hpmount -p0 "$image"
 printf 'y\n' | timeout 30 hpcopy -r "$work/kernel-payload" kernel.img
 printf 'y\n' | timeout 30 hpcopy -r "$work/initrd-payload" initramfs
 timeout 30 hpumount

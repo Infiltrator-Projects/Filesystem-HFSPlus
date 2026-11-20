@@ -35,7 +35,7 @@ chmod +x "$work/ram/init"
     cpio --null -o -H newc --owner=0:0 --quiet | gzip -1) > "$work/source/native.initrd"
 truncate -s 128M "$media"
 mkfs.hfsplus -v NativeHFSPlusTest "$media"
-printf 'y\n' | timeout 30 hpmount "$media"
+printf 'y\n' | timeout 30 hpmount -p0 "$media"
 printf 'y\n' | timeout 30 hpcopy -r "$work/source/native.kernel" kernel.img
 printf 'y\n' | timeout 30 hpcopy -r "$work/source/native.initrd" initramfs
 hpumount
