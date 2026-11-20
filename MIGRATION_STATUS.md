@@ -30,10 +30,13 @@ converts valid BMP and supplementary-plane names to bounded UTF-8, recording
 their actual output byte length. Apple's specifically documented internal
 hard-link metadata directory (four U+0000 units plus "HFS+ Private Data")
 is recognized and excluded from public directory enumeration, without
-masking arbitrary embedded-NUL corruption. Path lookup still supports only
-the independently qualified ASCII comparison subset. Extended fork/extent-
-overflow records, compressed or hardlinked file payloads, unsupported HFSX
-collation and dirty journalled volumes fail closed; no compatibility is faked.
+masking arbitrary embedded-NUL corruption. Filenames returned by LIST now
+round-trip through STAT and READ using exact UTF-8 bytes, demonstrated on a
+genuinely formatted HFS+ image containing a non-ASCII filename. ASCII-only
+case folding remains supported; unqualified Unicode case-folding and
+normalization aliases are not silently assumed. Extended fork/extent-overflow
+records, compressed or hardlinked file payloads, unsupported HFSX collation
+and dirty journalled volumes fail closed; no compatibility is faked.
 
 The former `hpmount` test-media population step could not open the raw
 `mkfs.hfsplus` volume and was replaced by a disposable, CI-only reference
