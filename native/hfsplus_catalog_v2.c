@@ -217,18 +217,47 @@ static int decode_record(const uint8_t *node,uint32_t node_bytes,
     } else return IFS_FS_CORRUPT;
     return IFS_FS_OK;
 }
-static int simple_name(const HfsPlusEntry *e,char *dst,uint32_t capacity)
+/* Native HFS+ catalogue keys are UTF-16BE, not ASCII. Convert all valid
+ * code points, including supplementary-plane surrogate pairs, to UTF-8
+ * without a locale or host library. HFS+ allows CR in a filename: do not
+ * mistake a genuine on-disk entry for an unsupported filesystem feature.
+ * Name comparison remains separately limited until Unicode collation is
+ * fully qualified; this only implements truthful directory enumeration. */
+static int simple_name(const HfsPlusEntry *e,char *dst,uint32_t capacity,
+                       uint32_t *name_bytes)
 {
-    /* The full Unicode normalization/collation tables are not yet ported.
-     * Never fake matches outside the fully-qualified ASCII subset. */
-    if(!dst || e->utf16_length>=capacity)return IFS_FS_NO_SPACE;
-    for(uint32_t i=0;i<e->utf16_length;++i) {
-        if(e->utf16[2u*i]!=0u || e->utf16[2u*i+1u]<32u ||
-           e->utf16[2u*i+1u]>126u)
-            return IFS_FS_UNSUPPORTED;
-        dst[i]=(char)e->utf16[2u*i+1u];
+    if(!e || !dst || !name_bytes || !capacity)return IFS_FS_INVALID;
+    uint32_t used=0u;
+    for(uint32_t i=0u;i<e->utf16_length;++i) {
+        uint32_t cp=rd16(e->utf16+2u*i);
+        if(cp>=0xd800u && cp<=0xdbffu) {
+            if(++i>=e->utf16_length)return IFS_FS_CORRUPT;
+            uint32_t low=rd16(e->utf16+2u*i);
+            if(low<0xdc00u || low>0xdfffu)return IFS_FS_CORRUPT;
+            cp=0x10000u+((cp-0xd800u)<<10)+(low-0xdc00u);
+        } else if(cp>=0xdc00u && cp<=0xdfffu) {
+            return IFS_FS_CORRUPT;
+        }
+        if(!cp)return IFS_FS_CORRUPT;
+        uint32_t length=cp<0x80u?1u:cp<0x800u?2u:cp<0x10000u?3u:4u;
+        if(length>=capacity-used)return IFS_FS_NO_SPACE;
+        if(length==1u)dst[used++]=(char)cp;
+        else if(length==2u) {
+            dst[used++]=(char)(0xc0u|(cp>>6));
+            dst[used++]=(char)(0x80u|(cp&0x3fu));
+        } else if(length==3u) {
+            dst[used++]=(char)(0xe0u|(cp>>12));
+            dst[used++]=(char)(0x80u|((cp>>6)&0x3fu));
+            dst[used++]=(char)(0x80u|(cp&0x3fu));
+        } else {
+            dst[used++]=(char)(0xf0u|(cp>>18));
+            dst[used++]=(char)(0x80u|((cp>>12)&0x3fu));
+            dst[used++]=(char)(0x80u|((cp>>6)&0x3fu));
+            dst[used++]=(char)(0x80u|(cp&0x3fu));
+        }
     }
-    dst[e->utf16_length]=0;
+    dst[used]=0;
+    *name_bytes=used;
     return IFS_FS_OK;
 }
 typedef struct {
@@ -334,10 +363,11 @@ static int emit(const HfsPlusEntry *e,IfsFsEntryV2 *dst)
 {
     if(!dst || dst->structure_bytes<sizeof(*dst) ||
        !dst->name)return IFS_FS_INVALID;
-    int rc=simple_name(e,dst->name,dst->name_capacity);
+    uint32_t written=0u;
+    int rc=simple_name(e,dst->name,dst->name_capacity,&written);
     if(rc!=IFS_FS_OK)return rc;
     dst->type=e->type;
-    dst->name_bytes=e->utf16_length;
+    dst->name_bytes=written;
     dst->size_bytes=e->type==IFS_FS_ENTRY_FILE?e->fork.length:0u;
     dst->attributes=0;
     return IFS_FS_OK;
