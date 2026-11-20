@@ -1,7 +1,13 @@
-# HFS+ native source consolidation — 6 November 2026
+# HFSPLUS Common V2 migration status
 
-All 27 HFS+ native source/design files in central Filesystems main commit `a253fb724ce1fd760a361219281effb6abd71367` were imported into this repository, preserving kernel source attribution and the existing HFS+ Defragmenter module sources. HFS+ and HFSX remain supported variants of this single on-disk format engine, not competing providers.
+- Hosted V2 probe: implemented; real on-media header/geometry validation
+- Hosted V2 metadata-only read-only mount and volume query: implemented
+- V2 path resolution, STAT, LIST and READ: **not implemented**
+- Shared hosted/freestanding native reader: **not implemented**
+- Packaged firmware ELF accepted by BOOT validator: **not qualified**
+- OVMF real kernel/initramfs reads: **not qualified**
+- Legacy workers/fixtures: retained for **non-installed tests only**
+- Production package: one Common V2 shared object and one PDF, no .ko
+- Publication: held until full BOOT requirements pass
 
-The Linux `hfsplus.ko` build reads `native/filesystems/hfsplus/` locally. Its `standalone/kernel.json` no longer downloads a historical central Filesystems source snapshot. The `.so` build and qualifying tests remain in this repository, without claiming any unverified cross-platform read/write features.
-
-Before deleting the original central source, the Filesystems manager CMake/CI/test/package references must be detached and the independent kernel build and native installer verified.
+A metadata-only V2 mount is not evidence of a working filesystem namespace.
