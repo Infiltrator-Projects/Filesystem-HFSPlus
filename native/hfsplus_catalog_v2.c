@@ -292,10 +292,18 @@ static int matches(const HfsPlusCatalogV2 *v,const HfsPlusEntry *e,
 {
     if(!e->type || e->parent!=s->parent)return 0;
     if(!s->name)return 1;
-    if(e->utf16_length!=s->name_bytes)return 0;
-    for(uint32_t i=0;i<s->name_bytes;++i) {
-        if(e->utf16[2u*i]!=0)return -1;
-        uint8_t a=e->utf16[2u*i+1u];
+    /* Compare the canonical UTF-8 bytes emitted by LIST. This guarantees
+     * that a valid non-ASCII name returned by V2 LIST can be used by V2
+     * STAT/READ, without falsely claiming unqualified Unicode collation,
+     * normalization aliases or non-ASCII case-fold equivalences. */
+    char utf8[4u*255u+1u];
+    uint32_t bytes=0u;
+    int rc=simple_name(e,utf8,sizeof(utf8),&bytes);
+    if(rc==IFS_FS_CORRUPT)return -2;
+    if(rc!=IFS_FS_OK)return -1;
+    if(bytes!=s->name_bytes)return 0;
+    for(uint32_t i=0u;i<bytes;++i) {
+        uint8_t a=(uint8_t)utf8[i];
         uint8_t b=(uint8_t)s->name[i];
         if(!v->case_sensitive) {
             if(a>='A' && a<='Z')a=(uint8_t)(a+32u);
@@ -334,7 +342,7 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
             if(is_private_metadata_directory(&record))
                 continue;
             int eq=matches(v,&record,scan);
-            if(eq<0){rc=IFS_FS_UNSUPPORTED;goto done;}
+            if(eq<0){rc=eq==-2?IFS_FS_CORRUPT:IFS_FS_UNSUPPORTED;goto done;}
             if(eq>0) {
                 if(scan->name || scan->count++==scan->wanted) {
                     scan->result=record;scan->found=1;rc=IFS_FS_OK;goto done;
@@ -365,12 +373,12 @@ static int lookup(const HfsPlusCatalogV2 *v,const char *path,HfsPlusEntry *e)
         const char *end=part;
         while(*end && *end!='/')++end;
         size_t length=(size_t)(end-part);
-        if(length==0 || length>255u || (length==1u && part[0]=='.') ||
+        if(length==0 || length>4u*255u || (length==1u && part[0]=='.') ||
            (length==2u && part[0]=='.' && part[1]=='.'))
             return IFS_FS_INVALID;
         for(size_t i=0;i<length;++i)
-            if((uint8_t)part[i]<32u || (uint8_t)part[i]>126u)
-                return IFS_FS_UNSUPPORTED;
+            if((uint8_t)part[i]<32u)
+                return IFS_FS_INVALID;
         HfsPlusScan s={.parent=parent,.name=part,.name_bytes=(uint32_t)length};
         int rc=catalog_scan(v,&s);
         if(rc!=IFS_FS_OK)return rc;
