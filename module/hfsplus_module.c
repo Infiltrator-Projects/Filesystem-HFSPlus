@@ -5,6 +5,7 @@
  * advertised through Common V2.
  */
 #include <infiltratr/filesystem_module_v2.h>
+#include <infiltratr/filesystem_ro_sessions_v2.h>
 #include <stdint.h>
 #include <stddef.h>
 static uint16_t be16(const unsigned char *p) {
@@ -52,52 +53,37 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
     }
     return IFS_FS_OK;
 }
-static int probe(const IfsFsHostRuntimeV2 *host,uint32_t *variant)
-{
-    return examine(host,variant,NULL);
-}
-/* A single image has one read-only mounted volume; generation tokens
- * prevent stale callers from reacquiring the next session. */
-static struct {
-    uintptr_t generation,active;
-    IfsFsVolumeInfoV2 info;
-} session;
-static int live(void *volume)
-{
-    return session.active!=0u && (uintptr_t)volume==session.active;
-}
-static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
+static int probe(const IfsFsHostRuntimeV2 *host,uint32_t *va/* Common V2 read-only sessions are per-volume and independently
+ * generation-bound. A singleton loses distinct volumes and makes stale
+ * handles unsafe when BOOT enumerates more than one filesystem partition.
+ * This is metadata-only; it never advertises file namespace operations. */
+static IfsFsReadOnlySessionsV2 sessions = IFS_FS_RO_SESSIONS_INIT_V2;
+static int mount_volume(const IfsFsHostRuntimeV2 *host, void **volume,
                         IfsFsVolumeInfoV2 *info)
 {
-    IfsFsVolumeInfoV2 measured={0};
-    uint32_t variant=0u;
-    int result;
-    if(!volume || !info || info->structure_bytes<sizeof(*info))
+    IfsFsVolumeInfoV2 measured = {0};
+    uint32_t variant = 0u;
+    int rc;
+    if (!volume || !info || info->structure_bytes < sizeof(*info))
         return IFS_FS_INVALID;
-    *volume=NULL;
-    if(!ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
-    /* HFS+/HFSX CORE.MOUNT is not a write-capable transaction. Never
-     * inherit permissions from an exclusive, writable host runtime. */
-    if(!(host->capabilities & IFS_FS_HOST_READ_ONLY))return IFS_FS_ACCESS;
-    if(session.active || session.generation==UINTPTR_MAX)return IFS_FS_BUSY;
-    result=examine(host,&variant,&measured);
-    if(result!=IFS_FS_OK)return result;
-    session.active=++session.generation;
-    session.info=measured;
-    *info=measured;
-    *volume=(void *)session.active;
-    return IFS_FS_OK;
+    *volume = NULL;
+    if (!ifs_fs_host_v2_valid(host))
+        return IFS_FS_INVALID;
+    if (!(host->capabilities & IFS_FS_HOST_READ_ONLY))
+        return IFS_FS_ACCESS;
+    rc = examine(host, &variant, &measured);
+    if (rc != IFS_FS_OK) return rc;
+    return ifs_fs_ro_session_open_v2(&sessions, &measured, volume, info);
 }
 static int unmount_volume(void *volume)
 {
-    if(!live(volume))return IFS_FS_INVALID;
-    session.active=0u;
-    return IFS_FS_OK;
+    return ifs_fs_ro_session_close_v2(&sessions, volume);
 }
-static int query_volume(void *volume,IfsFsVolumeInfoV2 *info)
+static int query_volume(void *volume, IfsFsVolumeInfoV2 *info)
 {
-    if(!live(volume) || !info || info->structure_bytes<sizeof(*info))
-        return IFS_FS_INVALID;
+    return ifs_fs_ro_session_query_v2(&sessions, volume, info);
+}
+;
     *info=session.info;
     return IFS_FS_OK;
 }
