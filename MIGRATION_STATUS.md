@@ -17,15 +17,28 @@ images exercise nested catalogue entries, directory enumeration, byte-exact
 file reads, missing paths and nonmutation.
 
 **Firmware release remains blocked until all gates pass**:
-(1) independently formatted `mkfs.hfsplus` images populated by `hpcopy`,
-with real contents and corrupt metadata; (2) the production BOOT 0.1.77
-validator against the actual packaged binary; (3) a disposable OVMF boot
+(1) independently formatted `mkfs.hfsplus` images populated by the
+CI runner's independent HFS+ writer on a disposable loopback image, with
+real contents, UTF-8 filenames and corrupt metadata; (2) the unmodified
+production BOOT validator against the actual packaged binary; (3) a disposable OVMF boot
 that reads the real kernel and initramfs; (4) SHA-verified nonmutation and
 portable DEB/native RUN CI. Source presence or compiling alone is not
 completion. No firmware-qualified HFSPLUS release has been published here.
 
-The present feature subset rejects UTF-16 names outside qualified ASCII
-lookup/case handling, extended fork/extent-overflow records, compressed
-or hardlinked files, unsupported HFSX collation and dirty journalled volumes
-rather than manufacturing boot compatibility. Additional feature sets need
-their own native engines and regression coverage.
+The on-disk catalogue uses genuine UTF-16BE keys. Directory enumeration now
+converts valid BMP and supplementary-plane names to bounded UTF-8, recording
+their actual output byte length. Apple's specifically documented internal
+hard-link metadata directory (four U+0000 units plus "HFS+ Private Data")
+is recognized and excluded from public directory enumeration, without
+masking arbitrary embedded-NUL corruption. Path lookup still supports only
+the independently qualified ASCII comparison subset. Extended fork/extent-
+overflow records, compressed or hardlinked file payloads, unsupported HFSX
+collation and dirty journalled volumes fail closed; no compatibility is faked.
+
+The former `hpmount` test-media population step could not open the raw
+`mkfs.hfsplus` volume and was replaced by a disposable, CI-only reference
+writer. This never substitutes for the Common V2 reader in the installed SO.
+The exact BOOT 0.1.77 validator artifact referenced by firmware CI is
+currently unavailable at its prior official release URL (HTTP 404).
+No release can be marked firmware-qualified until that external validator
+and the real OVMF kernel/initramfs handoff are available and pass.
