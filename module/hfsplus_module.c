@@ -5,9 +5,10 @@
  * advertised through Common V2.
  */
 #include <infiltratr/filesystem_module_v2.h>
-#include <infiltratr/filesystem_ro_sessions_v2.h>
+#include "hfsplus_catalog_v2.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 static uint16_t be16(const unsigned char *p) {
     return (uint16_t)(((uint16_t)p[0]<<8)|(uint16_t)p[1]);
 }
@@ -57,38 +58,99 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
 {
     return examine(host, variant, NULL);
 }
-/* Separate independent, generation-bound V2 session handles per volume.
- * Handles are never reused, allowing stale queries to fail closed. */
-static IfsFsReadOnlySessionsV2 sessions = IFS_FS_RO_SESSIONS_INIT_V2;
-static int mount_volume(const IfsFsHostRuntimeV2 *host, void **volume,
+/* Each mount owns its independent immutable format state. Opaque tokens
+ * never point at reusable storage and are never recycled. */
+#define HFSPLUS_MAX_SESSIONS 32u
+typedef struct {
+    uintptr_t token;
+    IfsFsHostRuntimeV2 host;
+    IfsFsVolumeInfoV2 info;
+    HfsPlusCatalogV2 catalog;
+} HfsPlusSession;
+static HfsPlusSession sessions[HFSPLUS_MAX_SESSIONS];
+static uintptr_t token_sequence;
+static HfsPlusSession *find_session(void *handle)
+{
+    uintptr_t token=(uintptr_t)handle;
+    if(!token)return NULL;
+    for(unsigned i=0;i<HFSPLUS_MAX_SESSIONS;++i)
+        if(sessions[i].token==token)return &sessions[i];
+    return NULL;
+}
+static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
                         IfsFsVolumeInfoV2 *info)
 {
-    IfsFsVolumeInfoV2 measured = {0};
-    uint32_t variant = 0u;
-    int result;
-    if (!volume || !info || info->structure_bytes < sizeof(*info))
-        return IFS_FS_INVALID;
-    *volume = NULL;
-    if (!ifs_fs_host_v2_valid(host))
-        return IFS_FS_INVALID;
-    if (!(host->capabilities & IFS_FS_HOST_READ_ONLY))
-        return IFS_FS_ACCESS;
-    result = examine(host, &variant, &measured);
-    if (result != IFS_FS_OK) return result;
-    return ifs_fs_ro_session_open_v2(&sessions, &measured, volume, info);
+    IfsFsVolumeInfoV2 measured={0};
+    HfsPlusSession *slot=NULL;
+    uint32_t variant=0;
+    if(!volume || !info || info->structure_bytes<sizeof(*info) ||
+       !ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
+    *volume=NULL;
+    if(!(host->capabilities&IFS_FS_HOST_READ_ONLY))return IFS_FS_ACCESS;
+    for(unsigned i=0;i<HFSPLUS_MAX_SESSIONS;++i)
+        if(!sessions[i].token){slot=&sessions[i];break;}
+    if(!slot || token_sequence==UINTPTR_MAX)return IFS_FS_BUSY;
+    int rc=examine(host,&variant,&measured);
+    if(rc!=IFS_FS_OK)return rc;
+    memset(&slot->host,0,sizeof(slot->host));
+    size_t copied=host->structure_bytes<sizeof(slot->host)?
+                  host->structure_bytes:sizeof(slot->host);
+    memcpy(&slot->host,host,copied);
+    slot->host.structure_bytes=(uint32_t)copied;
+    slot->info=measured;
+    rc=hfsplus_catalog_open_v2(&slot->host,&slot->catalog);
+    if(rc!=IFS_FS_OK) {
+        slot->host=(IfsFsHostRuntimeV2){0};
+        return rc;
+    }
+    slot->token=++token_sequence;
+    *volume=(void *)(uintptr_t)slot->token;
+    *info=measured;
+    return IFS_FS_OK;
 }
-static int unmount_volume(void *volume)
+static int unmount_volume(void *handle)
 {
-    return ifs_fs_ro_session_close_v2(&sessions, volume);
+    HfsPlusSession *slot=find_session(handle);
+    if(!slot)return IFS_FS_INVALID;
+    slot->token=0;
+    hfsplus_catalog_close_v2(&slot->catalog);
+    slot->host=(IfsFsHostRuntimeV2){0};
+    slot->info=(IfsFsVolumeInfoV2){0};
+    return IFS_FS_OK;
 }
-static int query_volume(void *volume, IfsFsVolumeInfoV2 *info)
+static int query_volume(void *handle,IfsFsVolumeInfoV2 *info)
 {
-    return ifs_fs_ro_session_query_v2(&sessions, volume, info);
+    HfsPlusSession *slot=find_session(handle);
+    if(!slot || !info || info->structure_bytes<sizeof(*info))
+        return IFS_FS_INVALID;
+    *info=slot->info;
+    return IFS_FS_OK;
+}
+static int stat_path(void *handle,const char *path,IfsFsEntryV2 *entry)
+{
+    HfsPlusSession *slot=find_session(handle);
+    return slot?hfsplus_catalog_stat_v2(&slot->catalog,path,entry):IFS_FS_INVALID;
+}
+static int list_path(void *handle,const char *path,uint32_t index,
+                     IfsFsEntryV2 *entry)
+{
+    HfsPlusSession *slot=find_session(handle);
+    return slot?hfsplus_catalog_list_v2(&slot->catalog,path,index,entry):
+                IFS_FS_INVALID;
+}
+static int read_path(void *handle,const char *path,uint64_t offset,
+                     void *out,uint32_t count)
+{
+    HfsPlusSession *slot=find_session(handle);
+    return slot?hfsplus_catalog_read_v2(&slot->catalog,path,offset,out,count):
+                IFS_FS_INVALID;
 }
 static const IfsFsCoreOpsV2 core={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsCoreOpsV2),
-             IFS_FS_GROUP_CORE,0u,IFS_FS_CORE_PROBE|IFS_FS_CORE_MOUNT},
-    .probe=probe,.mount=mount_volume,.unmount=unmount_volume
+             IFS_FS_GROUP_CORE,0u,IFS_FS_CORE_PROBE|IFS_FS_CORE_MOUNT|
+             IFS_FS_CORE_STAT|IFS_FS_CORE_LIST|IFS_FS_CORE_READ},
+    .probe=probe,.mount=mount_volume,.unmount=unmount_volume,
+    .stat=stat_path,.directory_entry=list_path,.read=read_path
 };
 static const IfsFsVolumeOpsV2 volume_ops={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsVolumeOpsV2),
