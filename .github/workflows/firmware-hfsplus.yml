@@ -14,12 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install compiler and ELF tools
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential binutils cmake git libssl-dev
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential binutils cmake git libssl-dev hfsprogs hfsplus
       - name: Build exact source-owned HFSPLUS read-only firmware binary
         shell: bash
         run: |
           set -euo pipefail
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DHFSPLUS_REAL_MEDIA_TESTS=ON
           cmake --build build --parallel 2
           ctest --test-dir build --output-on-failure
           test -s build/firmware/HFSPLUS.so
