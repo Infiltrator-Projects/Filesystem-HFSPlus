@@ -86,6 +86,7 @@ static int validate_extent_allocation(const HfsPlusCatalogV2 *v,
                 return IFS_FS_CORRUPT;
         }
     }
+    if(fork->total_blocks<accounted)return IFS_FS_CORRUPT;
     if(fork->length>span || fork->total_blocks>accounted)
         return IFS_FS_UNSUPPORTED;
     return IFS_FS_OK;
@@ -202,6 +203,14 @@ static int decode_record(const uint8_t *node,uint32_t node_bytes,
         e->type=IFS_FS_ENTRY_FILE;
         e->id=rd32(data+8);
         if(e->id<HFSPLUS_FIRSTUSER_CNID)return IFS_FS_CORRUPT;
+        /* HFS+ compressed files store their actual contents in decmpfs
+         * attributes; hardlinks redirect to the private inode directory.
+         * Neither can safely be treated as an ordinary data fork without
+         * the matching native attribute/hardlink engine. */
+        if((rd16(data+2u)&0x000cu) != 0u ||
+           (rd32(data+48u)==0x686c6e6bu &&
+            rd32(data+52u)==0x6866732bu))
+            return IFS_FS_UNSUPPORTED;
         parse_fork(data+88,&e->fork);
     } else if(type==3u || type==4u) {
         e->type=0u; /* catalog thread, never returned as child */
