@@ -56,6 +56,53 @@ static int compare_file(const IfsFsCoreOpsV2 *core,void *volume,
     VERIFY(close(fd)==0);
     return 0;
 }
+
+/* Test-only forensic output when native catalogue iteration refuses an
+ * externally formatted volume. Read bytes directly from disposable media
+ * for diagnosis; acceptance still uses the actual V2 interface. */
+static uint16_t diagnostics_be16(const unsigned char *p)
+{ return (uint16_t)(((uint16_t)p[0]<<8)|p[1]); }
+static uint32_t diagnostics_be32(const unsigned char *p)
+{
+    return ((uint32_t)p[0]<<24)|((uint32_t)p[1]<<16)|
+           ((uint32_t)p[2]<<8)|p[3];
+}
+static void diagnostics_catalog(int fd)
+{
+    unsigned char vh[512],header[128],node[32768];
+    if(pread(fd,vh,sizeof(vh),1024)!=(ssize_t)sizeof(vh))return;
+    uint32_t block_bytes=diagnostics_be32(vh+40);
+    uint32_t block=diagnostics_be32(vh+272+16);
+    if(!block_bytes || !block)return;
+    uint64_t start=(uint64_t)block*block_bytes;
+    if(pread(fd,header,sizeof(header),(off_t)start)!=(ssize_t)sizeof(header))
+        return;
+    uint32_t leaf=diagnostics_be32(header+24);
+    uint32_t node_bytes=diagnostics_be16(header+32);
+    fprintf(stderr,"HFSPLUS diagnostic catalog block=%u sector-bytes=%u leaf=%u node-bytes=%u\\n",
+            block,block_bytes,leaf,node_bytes);
+    if(node_bytes<512 || node_bytes>sizeof(node))return;
+    uint64_t absolute=start+(uint64_t)leaf*node_bytes;
+    if(pread(fd,node,node_bytes,(off_t)absolute)!=(ssize_t)node_bytes)
+        return;
+    uint32_t records=diagnostics_be16(node+10);
+    if(records>200u)return;
+    for(uint32_t i=0;i<records;++i) {
+        uint32_t off=diagnostics_be16(node+node_bytes-2u*(i+1u));
+        if(off+10u>node_bytes)continue;
+        uint32_t n=diagnostics_be16(node+off+6);
+        if(n>255u||off+8u+2u*n+2u>node_bytes)continue;
+        uint32_t parent=diagnostics_be32(node+off+4);
+        uint32_t type=diagnostics_be16(node+off+2u+
+                                       diagnostics_be16(node+off));
+        fprintf(stderr,"HFSPLUS catalog record %u parent=%u type=%u names=%u name:",
+                i,parent,type,n);
+        for(uint32_t j=0;j<n && j<80u;++j)
+            fprintf(stderr," %04x",diagnostics_be16(node+off+8u+2u*j));
+        fputc('\\n',stderr);
+    }
+}
+
 int main(int argc,char **argv)
 {
     if(argc!=4 && argc!=5)return 2;
@@ -112,8 +159,10 @@ int main(int argc,char **argv)
     for(uint32_t i=0;i<1024u;++i) {
         int rc=core->directory_entry(volume,"/",i,&entry);
         if(rc==IFS_FS_END){found_end=1;break;}
-        if(rc!=IFS_FS_OK)
+        if(rc!=IFS_FS_OK) {
             fprintf(stderr,"HFSPLUS directory index=%u status=%d\n",i,rc);
+            diagnostics_catalog(device.fd);
+        }
         VERIFY(rc==IFS_FS_OK);
         if(!strcmp(name,"kernel.img"))found_kernel=1;
         if(!strcmp(name,"initramfs"))found_initrd=1;
