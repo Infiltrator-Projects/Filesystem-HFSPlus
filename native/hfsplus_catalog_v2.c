@@ -1,0 +1,370 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later
+ * HFS+/HFSX Common V2 B-tree decoder, allocation file, data forks.
+ * Native HFS+ structures and offsets follow Apple's on-media format.
+ * No host filesystem paths, POSIX file descriptors or kernel VFS.
+ */
+#include "hfsplus_catalog_v2.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+#define HFSPLUS_ROOT_CNID 2u
+#define HFSPLUS_FIRSTUSER_CNID 16u
+#define HFSPLUS_MAX_NODE_BYTES 32768u
+static uint16_t rd16(const uint8_t *p)
+{ return (uint16_t)((uint16_t)p[0]<<8 | p[1]); }
+static uint32_t rd32(const uint8_t *p)
+{ return ((uint32_t)p[0]<<24)|((uint32_t)p[1]<<16)|((uint32_t)p[2]<<8)|p[3]; }
+static uint64_t rd64(const uint8_t *p)
+{ return ((uint64_t)rd32(p)<<32)|rd32(p+4); }
+
+static int read_bytes(const IfsFsHostRuntimeV2 *h,uint64_t offset,
+                      void *out,uint32_t n)
+{
+    if(!h || (!out && n) || offset>h->volume_bytes ||
+       n>h->volume_bytes-offset)return IFS_FS_CORRUPT;
+    if(!n)return IFS_FS_OK;
+    return ifs_fs_host_read_bytes_v2(h,offset,out,n);
+}
+static void parse_fork(const uint8_t *p,HfsPlusForkV2 *f)
+{
+    f->length=rd64(p);
+    f->total_blocks=rd32(p+12);
+    for(uint32_t i=0;i<8u;++i) {
+        f->extents[i].start=rd32(p+16+8*i);
+        f->extents[i].count=rd32(p+20+8*i);
+    }
+}
+static int fork_read_raw(const HfsPlusCatalogV2 *v,
+                         const HfsPlusForkV2 *f,uint64_t off,void *out,uint32_t n)
+{
+    uint8_t *dst=out;
+    if(!v || !f || (!out && n) || off>f->length ||
+       n>f->length-off)return IFS_FS_INVALID;
+    if(!n)return IFS_FS_OK;
+    const uint64_t target=off+n;
+    uint64_t logical=0;
+    uint32_t accounted=0;
+    for(uint32_t i=0;i<8u;++i) {
+        const HfsPlusExtentV2 *e=&f->extents[i];
+        if(e->start>v->blocks || e->count>v->blocks-e->start ||
+           (e->count==0u && e->start!=0u))
+            return IFS_FS_CORRUPT;
+        if(e->count>UINT32_MAX-accounted)return IFS_FS_CORRUPT;
+        accounted+=e->count;
+        uint64_t span=(uint64_t)e->count*v->block_bytes;
+        if(off>=logical && off<logical+span) {
+            uint64_t chunk=logical+span-off;
+            if(chunk>target-off)chunk=target-off;
+            uint64_t physical=(uint64_t)e->start*v->block_bytes+(off-logical);
+            int rc=read_bytes(v->host,physical,dst,(uint32_t)chunk);
+            if(rc!=IFS_FS_OK)return rc;
+            off+=chunk;dst+=chunk;
+            if(off==target)return IFS_FS_OK;
+        }
+        logical+=span;
+    }
+    return IFS_FS_UNSUPPORTED; /* requires extents-overflow B-tree */
+}
+static int validate_extent_allocation(const HfsPlusCatalogV2 *v,
+                                      const HfsPlusForkV2 *fork)
+{
+    if(!v->bitmap || !v->bitmap_bytes)return IFS_FS_INVALID;
+    uint64_t span=0;
+    uint32_t accounted=0;
+    for(uint32_t i=0;i<8u;++i) {
+        HfsPlusExtentV2 e=fork->extents[i];
+        if(e.start>v->blocks || e.count>v->blocks-e.start ||
+           (e.count==0u && e.start!=0u))
+            return IFS_FS_CORRUPT;
+        if(e.count>UINT32_MAX-accounted)return IFS_FS_CORRUPT;
+        accounted+=e.count;
+        span+=(uint64_t)e.count*v->block_bytes;
+        for(uint32_t j=0;j<e.count;++j) {
+            uint32_t block=e.start+j;
+            if(block/8u>=v->bitmap_bytes ||
+               !(v->bitmap[block>>3u]&(uint8_t)(0x80u>>(block&7u))))
+                return IFS_FS_CORRUPT;
+        }
+    }
+    if(fork->length>span || fork->total_blocks>accounted)
+        return IFS_FS_UNSUPPORTED;
+    return IFS_FS_OK;
+}
+void hfsplus_catalog_close_v2(HfsPlusCatalogV2 *v)
+{
+    if(!v)return;
+    if(v->bitmap && v->host)
+        v->host->release(v->host->context,v->bitmap);
+    memset(v,0,sizeof(*v));
+}
+int hfsplus_catalog_open_v2(const IfsFsHostRuntimeV2 *host,HfsPlusCatalogV2 *v)
+{
+    uint8_t vh[512],head[64];
+    if(!host || !v || !ifs_fs_host_v2_valid(host))
+        return IFS_FS_INVALID;
+    memset(v,0,sizeof(*v));
+    int rc=read_bytes(host,1024u,vh,sizeof(vh));
+    if(rc!=IFS_FS_OK)return rc;
+    uint16_t sig=rd16(vh),version=rd16(vh+2);
+    if(!((sig==0x482bu && version==4u) ||
+         (sig==0x4858u && version==5u))) return IFS_FS_NOT_FOUND;
+    v->host=host;
+    v->variant=sig==0x4858u?5u:4u;
+    v->block_bytes=rd32(vh+40);
+    v->blocks=rd32(vh+44);
+    uint32_t free_blocks=rd32(vh+48),attrib=rd32(vh+4);
+    if(v->block_bytes<512u || v->block_bytes>65536u ||
+       (v->block_bytes&(v->block_bytes-1u)) ||
+       !v->blocks || free_blocks>v->blocks ||
+       (uint64_t)v->blocks*v->block_bytes>host->volume_bytes)
+        return IFS_FS_CORRUPT;
+    /* A dirty journalled volume needs replay. Never read an uncommitted
+     * catalogue snapshot as though it were clean. */
+    if((attrib&(1u<<13)) && !(attrib&(1u<<8)))
+        return IFS_FS_UNSUPPORTED;
+    parse_fork(vh+112,&v->bitmap_fork);
+    parse_fork(vh+272,&v->catalog);
+    if(!v->bitmap_fork.length || !v->catalog.length)
+        return IFS_FS_UNSUPPORTED;
+    v->bitmap_bytes=(v->blocks+7u)/8u;
+    if(v->bitmap_fork.length<v->bitmap_bytes)
+        return IFS_FS_CORRUPT;
+    v->bitmap=host->allocate(host->context,v->bitmap_bytes);
+    if(!v->bitmap)return IFS_FS_NO_MEMORY;
+    rc=fork_read_raw(v,&v->bitmap_fork,0,v->bitmap,v->bitmap_bytes);
+    if(rc!=IFS_FS_OK)goto fail;
+    rc=validate_extent_allocation(v,&v->bitmap_fork);
+    if(rc!=IFS_FS_OK)goto fail;
+    rc=validate_extent_allocation(v,&v->catalog);
+    if(rc!=IFS_FS_OK)goto fail;
+    uint64_t counted_free=0;
+    for(uint32_t i=0;i<v->blocks;++i)
+        if(!(v->bitmap[i>>3u]&(uint8_t)(0x80u>>(i&7u))))++counted_free;
+    if(counted_free!=free_blocks){rc=IFS_FS_CORRUPT;goto fail;}
+    rc=fork_read_raw(v,&v->catalog,0,head,sizeof(head));
+    if(rc!=IFS_FS_OK)goto fail;
+    if(head[8]!=1u || rd16(head+10u)<1u) {
+        rc=IFS_FS_CORRUPT;goto fail;
+    }
+    v->node_bytes=rd16(head+32);
+    v->node_count=rd32(head+36);
+    v->leaf_head=rd32(head+24);
+    if(v->node_bytes<512u || v->node_bytes>HFSPLUS_MAX_NODE_BYTES ||
+       (v->node_bytes&(v->node_bytes-1u)) || !v->node_count ||
+       (uint64_t)v->node_count*v->node_bytes>v->catalog.length ||
+       (v->leaf_head && v->leaf_head>=v->node_count)) {
+        rc=IFS_FS_CORRUPT;goto fail;
+    }
+    if(v->variant==5u && head[51]!=0xbcu && head[51]!=0xcfu) {
+        rc=IFS_FS_UNSUPPORTED;goto fail;
+    }
+    v->case_sensitive=v->variant==5u && head[51]==0xbcu;
+    return IFS_FS_OK;
+fail:
+    hfsplus_catalog_close_v2(v);
+    return rc;
+}
+typedef struct {
+    uint32_t parent,id;
+    uint16_t utf16_length;
+    uint8_t utf16[510];
+    uint32_t type;
+    HfsPlusForkV2 fork;
+} HfsPlusEntry;
+static int decode_record(const uint8_t *node,uint32_t node_bytes,
+                         uint32_t begin,uint32_t finish,HfsPlusEntry *e)
+{
+    if(begin<14u || finish>node_bytes || finish<=begin ||
+       finish-begin<10u)return IFS_FS_CORRUPT;
+    const uint8_t *key=node+begin;
+    uint32_t key_len=rd16(key);
+    if(key_len<6u || key_len>516u || key_len+2u>finish-begin)
+        return IFS_FS_CORRUPT;
+    uint16_t name_len=rd16(key+6);
+    if(name_len>255u || key_len!=6u+2u*name_len)
+        return IFS_FS_CORRUPT;
+    uint32_t data_offset=begin+2u+key_len;
+    if(data_offset+2u>finish)return IFS_FS_CORRUPT;
+    const uint8_t *data=node+data_offset;
+    uint32_t left=finish-data_offset;
+    memset(e,0,sizeof(*e));
+    e->parent=rd32(key+2);
+    e->utf16_length=name_len;
+    memcpy(e->utf16,key+8,2u*name_len);
+    uint16_t type=rd16(data);
+    if(type==1u) {
+        if(left<88u)return IFS_FS_CORRUPT;
+        e->type=IFS_FS_ENTRY_DIRECTORY;
+        e->id=rd32(data+8);
+        if(e->id<2u)return IFS_FS_CORRUPT;
+    } else if(type==2u) {
+        if(left<248u)return IFS_FS_CORRUPT;
+        e->type=IFS_FS_ENTRY_FILE;
+        e->id=rd32(data+8);
+        if(e->id<HFSPLUS_FIRSTUSER_CNID)return IFS_FS_CORRUPT;
+        parse_fork(data+88,&e->fork);
+    } else if(type==3u || type==4u) {
+        e->type=0u; /* catalog thread, never returned as child */
+    } else return IFS_FS_CORRUPT;
+    return IFS_FS_OK;
+}
+static int simple_name(const HfsPlusEntry *e,char *dst,uint32_t capacity)
+{
+    /* The full Unicode normalization/collation tables are not yet ported.
+     * Never fake matches outside the fully-qualified ASCII subset. */
+    if(!dst || e->utf16_length>=capacity)return IFS_FS_NO_SPACE;
+    for(uint32_t i=0;i<e->utf16_length;++i) {
+        if(e->utf16[2u*i]!=0u || e->utf16[2u*i+1u]<32u ||
+           e->utf16[2u*i+1u]>126u)
+            return IFS_FS_UNSUPPORTED;
+        dst[i]=(char)e->utf16[2u*i+1u];
+    }
+    dst[e->utf16_length]=0;
+    return IFS_FS_OK;
+}
+typedef struct {
+    uint32_t parent,wanted,count;
+    const char *name;
+    uint32_t name_bytes;
+    HfsPlusEntry result;
+    int found,unsupported;
+} HfsPlusScan;
+static int matches(const HfsPlusCatalogV2 *v,const HfsPlusEntry *e,
+                   const HfsPlusScan *s)
+{
+    if(!e->type || e->parent!=s->parent)return 0;
+    if(!s->name)return 1;
+    if(e->utf16_length!=s->name_bytes)return 0;
+    for(uint32_t i=0;i<s->name_bytes;++i) {
+        if(e->utf16[2u*i]!=0)return -1;
+        uint8_t a=e->utf16[2u*i+1u];
+        uint8_t b=(uint8_t)s->name[i];
+        if(!v->case_sensitive) {
+            if(a>='A' && a<='Z')a=(uint8_t)(a+32u);
+            if(b>='A' && b<='Z')b=(uint8_t)(b+32u);
+        }
+        if(a!=b)return 0;
+    }
+    return 1;
+}
+static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
+{
+    if(!v || !scan || !v->host)return IFS_FS_INVALID;
+    if(!v->leaf_head)return IFS_FS_NOT_FOUND;
+    uint8_t *node=v->host->allocate(v->host->context,v->node_bytes);
+    if(!node)return IFS_FS_NO_MEMORY;
+    uint32_t current=v->leaf_head,previous=0;
+    int rc=IFS_FS_NOT_FOUND;
+    for(uint32_t visited=0;visited<v->node_count;++visited) {
+        rc=fork_read_raw(v,&v->catalog,(uint64_t)current*v->node_bytes,
+                         node,v->node_bytes);
+        if(rc!=IFS_FS_OK)break;
+        uint32_t count=rd16(node+10);
+        if(node[8]!=0xffu || rd32(node+4)!=previous ||
+           (count+1u)*2u>v->node_bytes-14u){
+            rc=IFS_FS_CORRUPT;break;
+        }
+        for(uint32_t index=0;index<count;++index) {
+            uint32_t begin=rd16(node+v->node_bytes-2u*(index+1u));
+            uint32_t finish=rd16(node+v->node_bytes-2u*(index+2u));
+            if(finish>v->node_bytes-2u*(count+1u) || begin>=finish) {
+                rc=IFS_FS_CORRUPT;goto done;
+            }
+            HfsPlusEntry record;
+            rc=decode_record(node,v->node_bytes,begin,finish,&record);
+            if(rc!=IFS_FS_OK)goto done;
+            int eq=matches(v,&record,scan);
+            if(eq<0){rc=IFS_FS_UNSUPPORTED;goto done;}
+            if(eq>0) {
+                if(scan->name || scan->count++==scan->wanted) {
+                    scan->result=record;scan->found=1;rc=IFS_FS_OK;goto done;
+                }
+            }
+        }
+        uint32_t next=rd32(node);
+        if(!next){rc=IFS_FS_NOT_FOUND;goto done;}
+        if(next>=v->node_count || next==current) {
+            rc=IFS_FS_CORRUPT;goto done;
+        }
+        previous=current;current=next;
+    }
+    if(rc==IFS_FS_OK)rc=IFS_FS_CORRUPT;
+done:
+    v->host->release(v->host->context,node);
+    return rc;
+}
+static int lookup(const HfsPlusCatalogV2 *v,const char *path,HfsPlusEntry *e)
+{
+    if(!v || !path || *path!='/')return IFS_FS_INVALID;
+    memset(e,0,sizeof(*e));
+    e->type=IFS_FS_ENTRY_DIRECTORY;e->id=HFSPLUS_ROOT_CNID;
+    if(!path[1])return IFS_FS_OK;
+    const char *part=path+1;
+    uint32_t parent=HFSPLUS_ROOT_CNID;
+    for(uint32_t depth=0;depth<64u;++depth) {
+        const char *end=part;
+        while(*end && *end!='/')++end;
+        size_t length=(size_t)(end-part);
+        if(length==0 || length>255u || (length==1u && part[0]=='.') ||
+           (length==2u && part[0]=='.' && part[1]=='.'))
+            return IFS_FS_INVALID;
+        for(size_t i=0;i<length;++i)
+            if((uint8_t)part[i]<32u || (uint8_t)part[i]>126u)
+                return IFS_FS_UNSUPPORTED;
+        HfsPlusScan s={.parent=parent,.name=part,.name_bytes=(uint32_t)length};
+        int rc=catalog_scan(v,&s);
+        if(rc!=IFS_FS_OK)return rc;
+        *e=s.result;
+        if(!*end)return IFS_FS_OK;
+        if(e->type!=IFS_FS_ENTRY_DIRECTORY)return IFS_FS_NOT_FOUND;
+        parent=e->id;part=end+1;
+    }
+    return IFS_FS_INVALID;
+}
+static int emit(const HfsPlusEntry *e,IfsFsEntryV2 *dst)
+{
+    if(!dst || dst->structure_bytes<sizeof(*dst) ||
+       !dst->name)return IFS_FS_INVALID;
+    int rc=simple_name(e,dst->name,dst->name_capacity);
+    if(rc!=IFS_FS_OK)return rc;
+    dst->type=e->type;
+    dst->name_bytes=e->utf16_length;
+    dst->size_bytes=e->type==IFS_FS_ENTRY_FILE?e->fork.length:0u;
+    dst->attributes=0;
+    return IFS_FS_OK;
+}
+int hfsplus_catalog_stat_v2(const HfsPlusCatalogV2 *v,const char *path,
+                            IfsFsEntryV2 *out)
+{
+    HfsPlusEntry record;
+    int rc=lookup(v,path,&record);
+    if(rc!=IFS_FS_OK)return rc;
+    if(!path[1]) {
+        record.utf16[0]=0;record.utf16[1]='/';
+        record.utf16_length=1;
+    }
+    return emit(&record,out);
+}
+int hfsplus_catalog_list_v2(const HfsPlusCatalogV2 *v,const char *path,
+                            uint32_t index,IfsFsEntryV2 *out)
+{
+    HfsPlusEntry directory;
+    int rc=lookup(v,path,&directory);
+    if(rc!=IFS_FS_OK)return rc;
+    if(directory.type!=IFS_FS_ENTRY_DIRECTORY)return IFS_FS_INVALID;
+    HfsPlusScan scan={.parent=directory.id,.wanted=index};
+    rc=catalog_scan(v,&scan);
+    if(rc==IFS_FS_NOT_FOUND)return IFS_FS_END;
+    return rc==IFS_FS_OK?emit(&scan.result,out):rc;
+}
+int hfsplus_catalog_read_v2(const HfsPlusCatalogV2 *v,const char *path,
+                            uint64_t offset,void *dst,uint32_t n)
+{
+    HfsPlusEntry file;
+    int rc=lookup(v,path,&file);
+    if(rc!=IFS_FS_OK)return rc;
+    if(file.type!=IFS_FS_ENTRY_FILE)return IFS_FS_INVALID;
+    rc=validate_extent_allocation(v,&file.fork);
+    if(rc!=IFS_FS_OK)return rc;
+    return fork_read_raw(v,&file.fork,offset,dst,n);
+}
