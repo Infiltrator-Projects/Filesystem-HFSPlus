@@ -260,6 +260,26 @@ static int simple_name(const HfsPlusEntry *e,char *dst,uint32_t capacity,
     *name_bytes=used;
     return IFS_FS_OK;
 }
+/* Apple's HFS+ hard-link metadata lives in a deliberately hidden root
+ * directory named four U+0000 code units plus "HFS+ Private Data".
+ * Those NUL units are a documented on-disk sentinel, not a normal POSIX
+ * pathname. Ignore only this exact private catalogue entry during public
+ * namespace enumeration; do not mask arbitrary embedded NUL corruption.
+ * Source: HFS Plus Volume Format TN1150, hard-link metadata directory. */
+static int is_private_metadata_directory(const HfsPlusEntry *e)
+{
+    static const char suffix[]="HFS+ Private Data";
+    const uint32_t suffix_length=(uint32_t)(sizeof(suffix)-1u);
+    if(e->parent!=HFSPLUS_ROOT_CNID ||
+       e->type!=IFS_FS_ENTRY_DIRECTORY ||
+       e->utf16_length!=4u+suffix_length)return 0;
+    for(uint32_t i=0u;i<4u;++i)
+        if(rd16(e->utf16+2u*i)!=0u)return 0;
+    for(uint32_t i=0u;i<suffix_length;++i)
+        if(rd16(e->utf16+2u*(i+4u))!=(uint8_t)suffix[i])
+            return 0;
+    return 1;
+}
 typedef struct {
     uint32_t parent,wanted,count;
     const char *name;
@@ -311,6 +331,8 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
             HfsPlusEntry record;
             rc=decode_record(node,v->node_bytes,begin,finish,&record);
             if(rc!=IFS_FS_OK)goto done;
+            if(is_private_metadata_directory(&record))
+                continue;
             int eq=matches(v,&record,scan);
             if(eq<0){rc=IFS_FS_UNSUPPORTED;goto done;}
             if(eq>0) {
