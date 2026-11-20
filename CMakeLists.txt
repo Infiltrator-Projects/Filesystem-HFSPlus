@@ -88,6 +88,24 @@ if(BUILD_TESTING)
   target_link_libraries(hfsplus-historical-test-support PRIVATE
     InfiltratrCommon::Common OpenSSL::Crypto)
 
+  add_executable(hfsplus-real-media-test tests/test_real_media.c)
+  target_include_directories(hfsplus-real-media-test PRIVATE
+    "${infiltratr_common_SOURCE_DIR}/include")
+  target_compile_options(hfsplus-real-media-test PRIVATE
+    -Wall -Wextra -Wpedantic -Werror)
+  target_link_libraries(hfsplus-real-media-test PRIVATE
+    hfsplus-driver InfiltratrCommon::Common)
+  option(HFSPLUS_REAL_MEDIA_TESTS
+    "Require independently created and populated HFS+ media in CTest" OFF)
+  if(HFSPLUS_REAL_MEDIA_TESTS)
+    find_program(HFSPLUS_MKFS mkfs.hfsplus REQUIRED)
+    find_program(HFSPLUS_MOUNT hpmount REQUIRED)
+    find_program(HFSPLUS_COPY hpcopy REQUIRED)
+    find_program(HFSPLUS_UNMOUNT hpumount REQUIRED)
+    add_test(NAME hfsplus-v2-independent-real-media
+      COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/real-hfsplus-v2.sh"
+      "$<TARGET_FILE:hfsplus-real-media-test>")
+  endif()
   add_executable(hfsplus-module-test tests/test_module.c)
   target_include_directories(hfsplus-module-test PRIVATE
     "${infiltratr_common_SOURCE_DIR}/include")
