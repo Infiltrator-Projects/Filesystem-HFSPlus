@@ -102,7 +102,7 @@ static void make_catalogue(void)
     media[last+8u]=0xffu;media[last+9u]=1u;
     u16(last+10u,1u);
     catalog_record(last+14u,17u,"line\rbreak",19u,0,5u,"HFSPLUS-CR-NAME-V2");
-    u16(last+510u,14u);u16(last+508u,288u);
+    u16(last+510u,14u);u16(last+508u,290u);
 }
 
 #define CHECK(x) do {if(!(x)){fprintf(stderr,"HFS+ V2 failed: %s at %d\n",#x,__LINE__);return 1;}}while(0)
