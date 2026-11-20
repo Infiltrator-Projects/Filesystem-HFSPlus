@@ -376,8 +376,11 @@ static int lookup(const HfsPlusCatalogV2 *v,const char *path,HfsPlusEntry *e)
         if(length==0 || length>4u*255u || (length==1u && part[0]=='.') ||
            (length==2u && part[0]=='.' && part[1]=='.'))
             return IFS_FS_INVALID;
+        /* HFS+ permits U+000D in on-disk names. LIST emits it, so
+         * STAT and READ must accept that same canonical UTF-8 path.
+         * Other ASCII control codes remain invalid. */
         for(size_t i=0;i<length;++i)
-            if((uint8_t)part[i]<32u)
+            if((uint8_t)part[i]<32u && part[i]!='\r')
                 return IFS_FS_INVALID;
         HfsPlusScan s={.parent=parent,.name=part,.name_bytes=(uint32_t)length};
         int rc=catalog_scan(v,&s);

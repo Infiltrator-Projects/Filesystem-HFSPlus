@@ -66,7 +66,7 @@ static void make_catalogue(void)
     u32(1024u+124u,1u);
     u32(1024u+128u,1u);
     u32(1024u+132u,1u);
-    u64(1024u+272u,1536u);
+    u64(1024u+272u,2048u);
     u32(1024u+284u,1u);
     u32(1024u+288u,2u);
     u32(1024u+292u,1u);
@@ -76,12 +76,12 @@ static void make_catalogue(void)
     u16(tree+10u,1u);
     u16(tree+14u,1u); /* depth */
     u32(tree+16u,1u); /* root node */
-    u32(tree+20u,3u); /* leaf records */
+    u32(tree+20u,4u); /* leaf records */
     u32(tree+24u,1u); /* first leaf */
-    u32(tree+28u,2u); /* last leaf */
+    u32(tree+28u,3u); /* last leaf */
     u16(tree+32u,512u);
     u16(tree+34u,516u);
-    u32(tree+36u,3u);
+    u32(tree+36u,4u);
     media[tree+51u]=0xcfu;
     u32(leaf,2u);
     media[leaf+8u]=0xffu;media[leaf+9u]=1u;
@@ -94,6 +94,15 @@ static void make_catalogue(void)
     u16(next+10u,1u);
     catalog_record(next+14u,17u,"initramfs",18u,0,4u,"HFSPLUS-INITRAMFS-V2");
     u16(next+510u,14u);u16(next+508u,288u);
+    /* A third genuine B-tree leaf contains an HFS+ legal CR filename.
+     * It must be accessible through the same name returned by LIST. */
+    u32(next,3u);
+    const unsigned last=tree+1536u;
+    u32(last+4u,2u);
+    media[last+8u]=0xffu;media[last+9u]=1u;
+    u16(last+10u,1u);
+    catalog_record(last+14u,17u,"line\rbreak",19u,0,5u,"HFSPLUS-CR-NAME-V2");
+    u16(last+510u,14u);u16(last+508u,288u);
 }
 
 #define CHECK(x) do {if(!(x)){fprintf(stderr,"HFS+ V2 failed: %s at %d\n",#x,__LINE__);return 1;}}while(0)
@@ -174,6 +183,18 @@ int main(void) {
                          (uint32_t)strlen("HFSPLUS-INITRAMFS-V2"))==IFS_FS_OK &&
               !memcmp(buffer,"HFSPLUS-INITRAMFS-V2",
                       strlen("HFSPLUS-INITRAMFS-V2")));
+        CHECK(core->directory_entry(volume,"/Boot",0u,&entry)==IFS_FS_OK &&
+              !strcmp(name,"initramfs"));
+        CHECK(core->directory_entry(volume,"/Boot",1u,&entry)==IFS_FS_OK &&
+              !strcmp(name,"line\rbreak"));
+        CHECK(core->directory_entry(volume,"/Boot",2u,&entry)==IFS_FS_END);
+        CHECK(core->stat(volume,"/Boot/line\rbreak",&entry)==IFS_FS_OK &&
+              entry.size_bytes==strlen("HFSPLUS-CR-NAME-V2"));
+        CHECK(core->read(volume,"/Boot/line\rbreak",0u,buffer,
+                         (uint32_t)strlen("HFSPLUS-CR-NAME-V2"))==IFS_FS_OK &&
+              !memcmp(buffer,"HFSPLUS-CR-NAME-V2",
+                      strlen("HFSPLUS-CR-NAME-V2")));
+        CHECK(core->stat(volume,"/Boot/line\tbreak",&entry)==IFS_FS_INVALID);
         CHECK(core->read(volume,"/kernel.img",8u,buffer,6u)==IFS_FS_OK &&
               !memcmp(buffer,"KERNEL",6u));
         CHECK(core->stat(volume,"/notfound",&entry)==IFS_FS_NOT_FOUND);
