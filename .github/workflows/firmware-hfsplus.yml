@@ -21,7 +21,15 @@ jobs:
           set -euo pipefail
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DHFSPLUS_REAL_MEDIA_TESTS=ON
           cmake --build build --parallel 2
-          ctest --test-dir build --output-on-failure
+      - name: Exercise real-media V2 HFS+ namespace and corruption cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 180 ctest --test-dir build --output-on-failure -V
+      - name: Audit freestanding ELF imports and embedded SO
+        shell: bash
+        run: |
+          set -euo pipefail
           test -s build/firmware/HFSPLUS.so
           ! readelf -dW build/firmware/HFSPLUS.so | grep '(NEEDED)'
           ! nm -u build/firmware/HFSPLUS.so | grep .
