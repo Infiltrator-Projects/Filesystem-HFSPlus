@@ -156,6 +156,7 @@ int main(int argc,char **argv)
     VERIFY(core->stat(volume,"/",&entry)==IFS_FS_OK &&
            entry.type==IFS_FS_ENTRY_DIRECTORY);
     int found_kernel=0,found_initrd=0,found_end=0,found_unicode=0;
+    char unicode_name[128]={0};
     for(uint32_t i=0;i<1024u;++i) {
         int rc=core->directory_entry(volume,"/",i,&entry);
         if(rc==IFS_FS_END){found_end=1;break;}
@@ -168,13 +169,25 @@ int main(int argc,char **argv)
         if(!strcmp(name,"initramfs"))found_initrd=1;
         if(strstr(name,".txt")!=NULL) {
             for(size_t j=0;j<entry.name_bytes;++j)
-                if((unsigned char)name[j]>=0x80u)found_unicode=1;
+                if((unsigned char)name[j]>=0x80u) {
+                    found_unicode=1;
+                    memcpy(unicode_name,name,strlen(name)+1u);
+                    break;
+                }
             VERIFY(entry.name_bytes==strlen(name));
         }
     }
     VERIFY(found_kernel && found_initrd && found_unicode && found_end);
     VERIFY(compare_file(core,volume,"/kernel.img",argv[2])==0);
     VERIFY(compare_file(core,volume,"/initramfs",argv[3])==0);
+    /* A name returned by LIST must resolve through the production V2 STAT
+     * and READ, even when the on-media HFS+ key is decomposed Unicode. */
+    {
+        char resolved[256]={0};
+        VERIFY(unicode_name[0]!=0);
+        VERIFY(snprintf(resolved,sizeof(resolved),"/%s",unicode_name)>0);
+        VERIFY(compare_file(core,volume,resolved,argv[2])==0);
+    }
     VERIFY(core->stat(volume,"/not-present",&entry)==IFS_FS_NOT_FOUND);
     VERIFY(core->unmount(volume)==IFS_FS_OK);
     VERIFY(close(device.fd)==0);
