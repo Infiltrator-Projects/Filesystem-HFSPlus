@@ -26,6 +26,23 @@ sudo mount -t hfsplus -o loop,rw "$image" "$mounted_at"
 mounted=1
 sudo cp -- "$work/kernel-payload" "$mounted_at/kernel.img"
 sudo cp -- "$work/initrd-payload" "$mounted_at/initramfs"
+# HFS+ stores names as UTF-16BE and may normalize Unicode to decomposed
+# form. The V2 directory emitter must return valid UTF-8, not refuse it.
+unicode_name=
+sync
+sudo umount "$mounted_at"
+mounted=0
+(cd "$work" && sha256sum hfsplus.img > source.sha256)
+"$program" "$image" "$work/kernel-payload" "$work/initrd-payload"
+(cd "$work" && sha256sum -c source.sha256)
+cp "$image" "$work/corrupt.img"
+printf '\000\000' | dd of="$work/corrupt.img" bs=1 seek=1024 conv=notrunc status=none
+"$program" "$work/corrupt.img" "$work/kernel-payload" \
+  "$work/initrd-payload" --reject
+(cd "$work" && sha256sum -c source.sha256)
+echo HFSPLUS_COMMON_V2_EXTERNAL_FORMAT_READS_AND_NONMUTATION_PASS
+caf\u00e9.txt'
+sudo cp -- "$work/kernel-payload" "$mounted_at/$unicode_name"
 sync
 sudo umount "$mounted_at"
 mounted=0
