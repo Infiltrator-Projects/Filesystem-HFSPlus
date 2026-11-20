@@ -105,6 +105,8 @@ if(BUILD_TESTING)
     add_test(NAME hfsplus-v2-independent-real-media
       COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/real-hfsplus-v2.sh"
       "$<TARGET_FILE:hfsplus-real-media-test>")
+    set_tests_properties(hfsplus-v2-independent-real-media
+      PROPERTIES TIMEOUT 120)
   endif()
   add_executable(hfsplus-module-test tests/test_module.c)
   target_include_directories(hfsplus-module-test PRIVATE
