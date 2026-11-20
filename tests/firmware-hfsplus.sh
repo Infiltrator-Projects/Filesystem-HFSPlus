@@ -35,10 +35,14 @@ chmod +x "$work/ram/init"
     cpio --null -o -H newc --owner=0:0 --quiet | gzip -1) > "$work/source/native.initrd"
 truncate -s 128M "$media"
 mkfs.hfsplus -v NativeHFSPlusTest "$media"
-printf 'y\n' | timeout 30 hpmount -p0 "$media"
-printf 'y\n' | timeout 30 hpcopy -r "$work/source/native.kernel" kernel.img
-printf 'y\n' | timeout 30 hpcopy -r "$work/source/native.initrd" initramfs
-hpumount
+# Only create independent disposable on-disk test media using the CI
+# runner's host HFS+ writer. BOOT never uses this kernel implementation.
+mkdir -p "$work/fixture-mounted"
+sudo mount -t hfsplus -o loop,rw "$media" "$work/fixture-mounted"
+sudo cp -- "$work/source/native.kernel" "$work/fixture-mounted/kernel.img"
+sudo cp -- "$work/source/native.initrd" "$work/fixture-mounted/initramfs"
+sync
+sudo umount "$work/fixture-mounted"
 if [[ "$mode" == bad-superblock ]]; then
     printf '\000\000' | dd of="$media" bs=1 seek=1024 conv=notrunc status=none
 fi
