@@ -79,7 +79,7 @@ static void diagnostics_catalog(int fd)
         return;
     uint32_t leaf=diagnostics_be32(header+24);
     uint32_t node_bytes=diagnostics_be16(header+32);
-    fprintf(stderr,"HFSPLUS diagnostic catalog block=%u sector-bytes=%u leaf=%u node-bytes=%u\\n",
+    fprintf(stderr,"HFSPLUS diagnostic catalog block=%u sector-bytes=%u leaf=%u node-bytes=%u\n",
             block,block_bytes,leaf,node_bytes);
     if(node_bytes<512 || node_bytes>sizeof(node))return;
     uint64_t absolute=start+(uint64_t)leaf*node_bytes;
@@ -99,7 +99,7 @@ static void diagnostics_catalog(int fd)
                 i,parent,type,n);
         for(uint32_t j=0;j<n && j<80u;++j)
             fprintf(stderr," %04x",diagnostics_be16(node+off+8u+2u*j));
-        fputc('\\n',stderr);
+        fputc('\n',stderr);
     }
 }
 
