@@ -36,8 +36,8 @@ chmod +x "$work/ram/init"
 truncate -s 128M "$media"
 mkfs.hfsplus -v NativeHFSPlusTest "$media"
 printf 'y\n' | timeout 30 hpmount "$media"
-hpcopy -r "$work/source/native.kernel" kernel.img
-hpcopy -r "$work/source/native.initrd" initramfs
+printf 'y\n' | timeout 30 hpcopy -r "$work/source/native.kernel" kernel.img
+printf 'y\n' | timeout 30 hpcopy -r "$work/source/native.initrd" initramfs
 hpumount
 if [[ "$mode" == bad-superblock ]]; then
     printf '\000\000' | dd of="$media" bs=1 seek=1024 conv=notrunc status=none

@@ -13,8 +13,8 @@ timeout 45 mkfs.hfsplus -v NativeHFSPlus "$image"
 head -c 65536 /dev/urandom > "$work/kernel-payload"
 head -c 32768 /dev/urandom > "$work/initrd-payload"
 printf 'y\n' | timeout 30 hpmount "$image"
-timeout 30 hpcopy -r "$work/kernel-payload" kernel.img
-timeout 30 hpcopy -r "$work/initrd-payload" initramfs
+printf 'y\n' | timeout 30 hpcopy -r "$work/kernel-payload" kernel.img
+printf 'y\n' | timeout 30 hpcopy -r "$work/initrd-payload" initramfs
 timeout 30 hpumount
 (cd "$work" && sha256sum hfsplus.img > source.sha256)
 "$program" "$image" "$work/kernel-payload" "$work/initrd-payload"
