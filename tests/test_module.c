@@ -141,6 +141,12 @@ int main(void) {
     host.release=release;
     CHECK(ifs_fs_host_v2_valid(&host));
     uint32_t variant=123u;
+    {
+        IfsFsHostRuntimeV2 invalid_host=host;
+        invalid_host.abi_version=1u;
+        CHECK(core->probe(&invalid_host,&variant)==IFS_FS_INVALID && variant==0u);
+    }
+    variant=123u;
     CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND && variant==0u);
     u16(1024u,0x482bu);u16(1026u,4u);
     u32(1024u+40u,4096u);u32(1024u+44u,150u);u32(1024u+48u,70u);
