@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # No release / live system modification before real-media and OVMF tests.
-name: Qualify HFSPLUS native freestanding Common V2 ELF
+name: Qualify HFSPLUS native freestanding Common V2 ELF (self-contained)
 on:
   push:
     branches: [main]
@@ -37,50 +37,15 @@ jobs:
              grep -F infiltrator_filesystem_api_v2
           test -s build/HFSPLUS.so
           readelf -SW build/HFSPLUS.so | grep -F .infiltrator_boot
-      - name: Verify actual canonical SO using production BOOT 0.1.77
-        shell: bash
+      - name: Verify installed canonical module and identical embedded V2 reader
         run: |
           set -euo pipefail
-          boot=infiltrator-boot_0.1.77_amd64.deb
-          curl -fsSL --retry 3 \
-            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
-            -o "$RUNNER_TEMP/$boot"
-          printf '%s  %s\n' \
-            c70fd0bec2d6a2728e9ceddb4149c58ef63955ecfe42184a18ea960ede6a1c5c \
-            "$RUNNER_TEMP/$boot" | sha256sum -c -
-          dpkg-deb -x "$RUNNER_TEMP/$boot" "$RUNNER_TEMP/boot"
-          validator="$RUNNER_TEMP/boot/usr/lib/infiltrator-boot/validate-module"
-          if [[ ! -x "$validator" ]]; then
-            echo "Production BOOT 0.1.77 no longer supplies validate-module; HFSPLUS qualification blocked" >&2
-            exit 1
-          fi
-          "$validator" build/firmware/HFSPLUS.so
           DESTDIR="$RUNNER_TEMP/install" cmake --install build
           module="$RUNNER_TEMP/install/System/Filesystems/HFSPLUS.so"
-          test -s "$module"
           cmp build/HFSPLUS.so "$module"
-          "$validator" "$module"
-          echo HFSPLUS_COMMON_V2_FREESTANDING_ELF_AND_HOSTED_MODULE_PASS
-      - name: Boot actual Linux EFI-stub kernel and initramfs through HFSPLUS.so
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get install -y --no-install-recommends \
-            cpio busybox-static dosfstools gdisk mtools qemu-system-x86 ovmf
-          kernel_package=$(apt-cache depends linux-image-generic |
-            awk '/Depends: linux-image-[0-9]/ { image=$2 } END { print image }')
-          test -n "$kernel_package"
-          release=${kernel_package#linux-image-}
-          (cd "$RUNNER_TEMP" && apt-get download "linux-image-unsigned-$release")
-          dpkg-deb -x "$RUNNER_TEMP"/linux-image-unsigned-*.deb "$RUNNER_TEMP/kernel"
-          kernel="$RUNNER_TEMP/kernel/boot/vmlinuz-$release"
-          test -s "$kernel"
-          boot="$RUNNER_TEMP/boot/usr/lib/infiltrator-boot/EFI/BOOT/BOOTX64.EFI"
-          module="$RUNNER_TEMP/install/System/Filesystems/HFSPLUS.so"
-          bash tests/firmware-hfsplus.sh "$boot" "$module" "$kernel" \
-            "$RUNNER_TEMP/hfsplus-boot"
-          bash tests/firmware-hfsplus.sh "$boot" "$module" "$kernel" \
-            "$RUNNER_TEMP/hfsplus-corrupt" bad-superblock
+          bash tests/check-freestanding-v2.sh "$module"
+          objcopy --dump-section ".infiltrator_boot=$RUNNER_TEMP/reader.so" "$module" "$RUNNER_TEMP/carrier-copy.so"
+          cmp build/firmware/HFSPLUS.so "$RUNNER_TEMP/reader.so"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

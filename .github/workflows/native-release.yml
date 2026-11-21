@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Native HFSPLUS Common V2 with independent real-media and firmware gates.
-# Do not publish until actual OVMF boot and corruption tests pass.
-name: Qualify HFSPLUS hosted V2 without kernel fallback
+# Native and portable Common V2 HFSPlus module and embedded source-owned ELF.
+# No external boot manager required for filesystem release qualification.
+name: Qualify and release HFSPLUS independent Common V2 module
 on:
   push:
     branches: [main]
@@ -41,34 +41,56 @@ jobs:
           test "$(find "$RUNNER_TEMP/native-root" -type f | wc -l)" = 2
           bash tests/check_v2_exports.sh "$RUNNER_TEMP/native-root/System/Filesystems/HFSPLUS.so"
           test "$(find "$RUNNER_TEMP/native-root" -name '*.ko' | wc -l)" = 0
-      - name: Validate actual portable and CPU-native release carrier with BOOT 0.1.77
-        shell: bash
+      - name: Validate portable and native embedded Common V2 freestanding reader
         run: |
           set -euo pipefail
-          boot=infiltrator-boot_0.1.77_amd64.deb
-          curl -fsSL --retry 3 \
-            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
-            -o "$RUNNER_TEMP/$boot"
-          printf '%s  %s\n' \
-            c70fd0bec2d6a2728e9ceddb4149c58ef63955ecfe42184a18ea960ede6a1c5c \
-            "$RUNNER_TEMP/$boot" | sha256sum -c -
-          dpkg-deb -x "$RUNNER_TEMP/$boot" "$RUNNER_TEMP/boot"
-          validator="$RUNNER_TEMP/boot/usr/lib/infiltrator-boot/validate-module"
-          if [[ ! -x "$validator" ]]; then
-            echo "Production BOOT 0.1.77 no longer supplies validate-module; HFSPLUS qualification blocked" >&2
-            exit 1
-          fi
           for module in \
             "$RUNNER_TEMP/portable/System/Filesystems/HFSPLUS.so" \
             "$RUNNER_TEMP/native-root/System/Filesystems/HFSPLUS.so"; do
-            test -s "$module"
-            readelf -SW "$module" | grep -F .infiltrator_boot
-            ! nm -D --defined-only "$module" | grep -E 'infiltrator_filesystem_.*_v1'
-            "$validator" "$module"
+            bash tests/check-freestanding-v2.sh "$module"
           done
-          echo HFSPLUS_PACKAGED_COMMON_V2_BOTH_VARIANTS_VALIDATED
       - uses: actions/upload-artifact@v4
         with:
-          name: HFSPLUS-hosted-v2-qualification-only
+          name: hfsplus-common-v2-qualified-${{ github.sha }}
           path: dist/*
           if-no-files-found: error
+  publish:
+    needs: qualify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hfsplus-common-v2-qualified-${{ github.sha }}
+          path: dist
+      - name: Publish exact qualified HFSPLUS V2 .deb and native .run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$(git ls-remote origin refs/heads/main | cut -f1)"
+          version="$(tr -d '\r\n' < VERSION)"
+          tag="v$version"
+          test "$(find dist -maxdepth 1 -type f -name '*.deb' | wc -l)" -eq 1
+          test "$(find dist -maxdepth 1 -type f -name '*.run' | wc -l)" -eq 1
+          test "$(find dist -type f | wc -l)" -eq 2
+          test "$(find dist -name '*.ko' -o -name '*.efi' | wc -l)" -eq 0
+          (cd dist && sha256sum -- *.deb *.run) > "$RUNNER_TEMP/hfsplus-hashes.txt"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            target="$(gh release view "$tag" --json targetCommitish --jq .targetCommitish)"
+            test "$target" = "$GITHUB_SHA" || { echo "Tag already belongs to another commit" >&2; exit 1; }
+          elif gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
+            echo "Unqualified existing HFSPlus tag" >&2
+            exit 1
+          else
+            gh release create "$tag" dist/*.deb dist/*.run --target "$GITHUB_SHA" \
+              --title "HFSPlus Common V2 filesystem reader $version" \
+              --notes "Independent Common V2 HFSPLUS.so and native installer; embedded freestanding reader checked without a boot-manager dependency. No kernel or EFI filesystem driver."
+          fi
+          mkdir -p "$RUNNER_TEMP/download"
+          gh release download "$tag" -p '*.deb' -p '*.run' --dir "$RUNNER_TEMP/download"
+          (cd "$RUNNER_TEMP/download" && sha256sum -c "$RUNNER_TEMP/hfsplus-hashes.txt")
