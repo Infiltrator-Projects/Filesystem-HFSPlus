@@ -136,6 +136,13 @@ int main(int argc,char **argv)
         VERIFY(close(device.fd)==0);
         return 0;
     }
+    if(argc==5 && !strcmp(argv[4],"--unsupported-version")) {
+        VERIFY(core->probe(&host,&variant)==IFS_FS_UNSUPPORTED);
+        VERIFY(core->mount(&host,&volume,&info)==IFS_FS_UNSUPPORTED &&
+               volume==NULL);
+        VERIFY(close(device.fd)==0);
+        return 0;
+    }
     if(argc==5 && !strcmp(argv[4],"--corrupt-catalog")) {
         VERIFY(core->probe(&host,&variant)==IFS_FS_OK);
         VERIFY(core->mount(&host,&volume,&info)==IFS_FS_OK && volume);
