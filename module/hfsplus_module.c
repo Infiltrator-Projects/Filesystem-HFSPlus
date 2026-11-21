@@ -32,9 +32,13 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
     }
     sig=be16(header);
     version=be16(header+2u);
-    if((sig!=UINT16_C(0x482b) || version!=4u) &&
-       (sig!=UINT16_C(0x4858) || version!=5u))
+    if(sig!=UINT16_C(0x482b) && sig!=UINT16_C(0x4858))
         return IFS_FS_NOT_FOUND;
+    /* Recognised native volume, unsupported revision: never let a BOOT
+     * format scan mistake this for an unrelated or absent filesystem. */
+    if((sig==UINT16_C(0x482b) && version!=4u) ||
+       (sig==UINT16_C(0x4858) && version!=5u))
+        return IFS_FS_UNSUPPORTED;
     block_bytes=be32(header+40u);
     total_blocks=be32(header+44u);
     free_blocks=be32(header+48u);
