@@ -244,7 +244,10 @@ int main(void) {
     host.physical_sector_bytes=512u;
     host.maximum_transfer_bytes=512u;
     u16(1026u,4u);
-    CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND);
+    CHECK(core->probe(&host,&variant)==IFS_FS_UNSUPPORTED);
+    info.structure_bytes=sizeof(info);
+    volume=NULL;
+    CHECK(core->mount(&host,&volume,&info)==IFS_FS_UNSUPPORTED && !volume);
     u16(1026u,5u);
     u32(1024u+48u,151u);
     CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
