@@ -178,6 +178,19 @@ int main(void) {
               entry.type==IFS_FS_ENTRY_DIRECTORY);
         CHECK(core->stat(volume,"/kernel.img",&entry)==IFS_FS_OK &&
               entry.size_bytes==strlen("HFSPLUS-KERNEL-V2"));
+        /* The public V2 name converter must never write an incomplete
+         * UTF-8 prefix when a valid name exceeds caller capacity. */
+        {
+            char tiny[3]={'X','X','X'};
+            IfsFsEntryV2 short_entry={.structure_bytes=sizeof(short_entry),
+                                      .name=tiny,.name_capacity=sizeof(tiny)};
+            CHECK(core->stat(volume,"/kernel.img",&short_entry)==IFS_FS_NO_SPACE);
+            CHECK(tiny[0]=='X' && tiny[1]=='X' && tiny[2]=='X' &&
+                  short_entry.name_bytes==0u);
+            CHECK(core->directory_entry(volume,"/",0u,&short_entry)==IFS_FS_NO_SPACE);
+            CHECK(tiny[0]=='X' && tiny[1]=='X' && tiny[2]=='X' &&
+                  short_entry.name_bytes==0u);
+        }
         CHECK(core->directory_entry(volume,"/",0u,&entry)==IFS_FS_OK &&
               !strcmp(name,"kernel.img"));
         CHECK(core->directory_entry(volume,"/",1u,&entry)==IFS_FS_OK &&
