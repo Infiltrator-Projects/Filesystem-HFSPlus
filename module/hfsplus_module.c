@@ -22,8 +22,9 @@ static int examine(const IfsFsHostRuntimeV2 *host,uint32_t *variant,
     unsigned char header[512];
     uint16_t sig,version;
     uint32_t block_bytes,total_blocks,free_blocks;
-    if(!variant || !ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
+    if(!variant)return IFS_FS_INVALID;
     *variant=0u;
+    if(!ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
     if(host->volume_bytes<1536u)return IFS_FS_NOT_FOUND;
     {
         int rc=ifs_fs_host_read_bytes_v2(host,1024u,header,
