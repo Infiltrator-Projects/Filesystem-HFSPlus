@@ -38,5 +38,12 @@ cp "$image" "$work/corrupt.img"
 printf '\000\000' | dd of="$work/corrupt.img" bs=1 seek=1024 conv=notrunc status=none
 "$program" "$work/corrupt.img" "$work/kernel-payload" \
   "$work/initrd-payload" --reject
+# Keep the native HFS+ signature but change its on-media revision to the
+# HFSX revision. This is an unsupported variant, not an absent filesystem.
+cp "$image" "$work/unsupported-version.img"
+printf '\\000\\005' | dd of="$work/unsupported-version.img" bs=1 seek=1026 \
+  conv=notrunc status=none
+"$program" "$work/unsupported-version.img" "$work/kernel-payload" \
+  "$work/initrd-payload" --unsupported-version
 (cd "$work" && sha256sum -c source.sha256)
 echo HFSPLUS_COMMON_V2_EXTERNAL_FORMAT_READS_AND_NONMUTATION_PASS
