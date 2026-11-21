@@ -228,6 +228,24 @@ static int simple_name(const HfsPlusEntry *e,char *dst,uint32_t capacity,
                        uint32_t *name_bytes)
 {
     if(!e || !dst || !name_bytes || !capacity)return IFS_FS_INVALID;
+    /* First validate the entire UTF-16BE sequence and its UTF-8 size.
+     * Neither a trailing malformed surrogate nor insufficient capacity
+     * may leave a partially written Common V2 directory name. */
+    uint32_t required=0u;
+    for(uint32_t i=0u;i<e->utf16_length;++i) {
+        uint32_t cp=rd16(e->utf16+2u*i);
+        if(cp>=0xd800u && cp<=0xdbffu) {
+            if(++i>=e->utf16_length)return IFS_FS_CORRUPT;
+            const uint32_t low=rd16(e->utf16+2u*i);
+            if(low<0xdc00u || low>0xdfffu)return IFS_FS_CORRUPT;
+            cp=0x10000u+((cp-0xd800u)<<10)+(low-0xdc00u);
+        } else if(cp>=0xdc00u && cp<=0xdfffu) {
+            return IFS_FS_CORRUPT;
+        }
+        if(!cp)return IFS_FS_CORRUPT;
+        required+=cp<0x80u?1u:cp<0x800u?2u:cp<0x10000u?3u:4u;
+    }
+    if(required>=capacity)return IFS_FS_NO_SPACE;
     uint32_t used=0u;
     for(uint32_t i=0u;i<e->utf16_length;++i) {
         uint32_t cp=rd16(e->utf16+2u*i);
