@@ -107,8 +107,9 @@ int hfsplus_catalog_open_v2(const IfsFsHostRuntimeV2 *host,HfsPlusCatalogV2 *v)
     int rc=read_bytes(host,1024u,vh,sizeof(vh));
     if(rc!=IFS_FS_OK)return rc;
     uint16_t sig=rd16(vh),version=rd16(vh+2);
-    if(!((sig==0x482bu && version==4u) ||
-         (sig==0x4858u && version==5u))) return IFS_FS_NOT_FOUND;
+    if(sig!=0x482bu && sig!=0x4858u) return IFS_FS_NOT_FOUND;
+    if((sig==0x482bu && version!=4u) ||
+       (sig==0x4858u && version!=5u)) return IFS_FS_UNSUPPORTED;
     v->host=host;
     v->variant=sig==0x4858u?5u:4u;
     v->block_bytes=rd32(vh+40);
