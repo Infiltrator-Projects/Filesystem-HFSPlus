@@ -91,6 +91,16 @@ if(BUILD_TESTING)
   add_test(NAME hfsplus-production-only-v2
     COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/check_v2_exports.sh"
       "$<TARGET_FILE:hfsplus-driver>")
+  # The regression compiles the same native reader used in both V2 profiles.
+  add_executable(hfsplus-duplicate-catalogue-test
+    tests/test_duplicate_catalogue.c)
+  target_include_directories(hfsplus-duplicate-catalogue-test PRIVATE
+    "${infiltratr_common_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/native")
+  target_compile_options(hfsplus-duplicate-catalogue-test PRIVATE
+    -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME hfsplus-v2-duplicate-catalogue-corruption
+    COMMAND hfsplus-duplicate-catalogue-test)
 endif()
 install(TARGETS hfsplus-driver LIBRARY DESTINATION /System/Filesystems)
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/docs/HFSPlus.pdf"
