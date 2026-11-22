@@ -363,13 +363,22 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
             int eq=matches(v,&record,scan);
             if(eq<0){rc=eq==-2?IFS_FS_CORRUPT:IFS_FS_UNSUPPORTED;goto done;}
             if(eq>0) {
-                if(scan->name || scan->count++==scan->wanted) {
+                if(scan->name) {
+                    /* The on-disk parent/name catalogue key is unique.
+                     * Check subsequent leaves as well as the current leaf;
+                     * accepting the first duplicate conceals corruption. */
+                    if(scan->found){rc=IFS_FS_CORRUPT;goto done;}
+                    scan->result=record;scan->found=1;
+                } else if(scan->count++==scan->wanted) {
                     scan->result=record;scan->found=1;rc=IFS_FS_OK;goto done;
                 }
             }
         }
         uint32_t next=rd32(node);
-        if(!next){rc=IFS_FS_NOT_FOUND;goto done;}
+        if(!next){
+            rc=scan->name && scan->found?IFS_FS_OK:IFS_FS_NOT_FOUND;
+            goto done;
+        }
         if(next>=v->node_count || next==current) {
             rc=IFS_FS_CORRUPT;goto done;
         }
