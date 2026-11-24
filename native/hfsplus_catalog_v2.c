@@ -167,8 +167,8 @@ fail:
     return rc;
 }
 typedef struct {
-    uint32_t parent,id;
-    uint16_t utf16_length;
+    uint32_t parent,id,owner,group;
+    uint16_t mode,utf16_length;
     uint8_t utf16[510];
     uint32_t type;
     HfsPlusForkV2 fork;
@@ -216,6 +216,11 @@ static int decode_record(const uint8_t *node,uint32_t node_bytes,
     } else if(type==3u || type==4u) {
         e->type=0u; /* catalog thread, never returned as child */
     } else return IFS_FS_CORRUPT;
+    if(e->type) {
+        /* HFSPlusBSDInfo at offset 32 in both file and folder records. */
+        e->owner=rd32(data+32u);e->group=rd32(data+36u);
+        e->mode=rd16(data+42u);
+    }
     return IFS_FS_OK;
 }
 /* Native HFS+ catalogue keys are UTF-16BE, not ASCII. Convert all valid
@@ -304,11 +309,13 @@ typedef struct {
     const char *name;
     uint32_t name_bytes;
     HfsPlusEntry result;
-    int found,unsupported;
+    int found,unsupported,root_record;
 } HfsPlusScan;
 static int matches(const HfsPlusCatalogV2 *v,const HfsPlusEntry *e,
                    const HfsPlusScan *s)
 {
+    if(s->root_record)return e->type==IFS_FS_ENTRY_DIRECTORY &&
+        e->parent==1u && e->id==HFSPLUS_ROOT_CNID;
     if(!e->type || e->parent!=s->parent)return 0;
     if(!s->name)return 1;
     /* Compare the canonical UTF-8 bytes emitted by LIST. This guarantees
@@ -363,7 +370,7 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
             int eq=matches(v,&record,scan);
             if(eq<0){rc=eq==-2?IFS_FS_CORRUPT:IFS_FS_UNSUPPORTED;goto done;}
             if(eq>0) {
-                if(scan->name) {
+                if(scan->name || scan->root_record) {
                     /* The on-disk parent/name catalogue key is unique.
                      * Check subsequent leaves as well as the current leaf;
                      * accepting the first duplicate conceals corruption. */
@@ -376,7 +383,7 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
         }
         uint32_t next=rd32(node);
         if(!next){
-            rc=scan->name && scan->found?IFS_FS_OK:IFS_FS_NOT_FOUND;
+            rc=(scan->name || scan->root_record) && scan->found?IFS_FS_OK:IFS_FS_NOT_FOUND;
             goto done;
         }
         if(next>=v->node_count || next==current) {
@@ -431,6 +438,37 @@ static int emit(const HfsPlusEntry *e,IfsFsEntryV2 *dst)
     dst->name_bytes=written;
     dst->size_bytes=e->type==IFS_FS_ENTRY_FILE?e->fork.length:0u;
     dst->attributes=0;
+    return IFS_FS_OK;
+}
+/* HFS+ stores the volume name in the root folder's catalog key,
+ * not the volume header. Resolve the real CNID 2 record uniquely. */
+static int root_record(const HfsPlusCatalogV2 *v,HfsPlusEntry *record)
+{
+    HfsPlusScan scan={.root_record=1};
+    int rc=catalog_scan(v,&scan);
+    if(rc==IFS_FS_OK)*record=scan.result;
+    return rc;
+}
+int hfsplus_catalog_label_v2(const HfsPlusCatalogV2 *v,char *out,uint32_t cap,uint32_t *bytes)
+{
+    if(!bytes)return IFS_FS_INVALID;
+    *bytes=0u;
+    if(!out || !cap)return IFS_FS_INVALID;
+    HfsPlusEntry record;
+    int rc=root_record(v,&record);
+    return rc==IFS_FS_OK?simple_name(&record,out,cap,bytes):rc;
+}
+int hfsplus_catalog_metadata_v2(const HfsPlusCatalogV2 *v,const char *path,IfsFsMetadataV2 *out)
+{
+    if(!path || !out || out->structure_bytes<sizeof(*out))return IFS_FS_INVALID;
+    HfsPlusEntry record;
+    int rc=(path[0]=='/' && !path[1])?root_record(v,&record):lookup(v,path,&record);
+    if(rc!=IFS_FS_OK)return rc;
+    /* An unset BSD mode is not a real POSIX mode. Do not fabricate one
+     * for older Mac OS-created records. */
+    if(!record.mode)return IFS_FS_UNSUPPORTED;
+    *out=(IfsFsMetadataV2){.structure_bytes=sizeof(*out),.mask=IFS_FS_META_GET_MODE,
+        .mode=record.mode,.owner=record.owner,.group=record.group};
     return IFS_FS_OK;
 }
 int hfsplus_catalog_stat_v2(const HfsPlusCatalogV2 *v,const char *path,

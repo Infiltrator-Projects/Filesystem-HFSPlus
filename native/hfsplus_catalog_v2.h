@@ -25,6 +25,8 @@ typedef struct {
 } HfsPlusCatalogV2;
 int hfsplus_catalog_open_v2(const IfsFsHostRuntimeV2 *, HfsPlusCatalogV2 *);
 void hfsplus_catalog_close_v2(HfsPlusCatalogV2 *);
+int hfsplus_catalog_label_v2(const HfsPlusCatalogV2 *,char *,uint32_t,uint32_t *);
+int hfsplus_catalog_metadata_v2(const HfsPlusCatalogV2 *,const char *,IfsFsMetadataV2 *);
 int hfsplus_catalog_stat_v2(const HfsPlusCatalogV2 *, const char *, IfsFsEntryV2 *);
 int hfsplus_catalog_list_v2(const HfsPlusCatalogV2 *, const char *, uint32_t, IfsFsEntryV2 *);
 int hfsplus_catalog_read_v2(const HfsPlusCatalogV2 *, const char *, uint64_t, void *, uint32_t);

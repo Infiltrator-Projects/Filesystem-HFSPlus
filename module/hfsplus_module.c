@@ -404,14 +404,34 @@ static int format_volume(const IfsFsHostRuntimeV2 *h,uint32_t variant,
 }
 #endif
 
+static int volume_label(void *volume,char *out,uint32_t cap,uint32_t *bytes)
+{
+    if(!bytes)return IFS_FS_INVALID;
+    *bytes=0u;
+    HfsPlusSession *slot;
+    int rc=acquire_mount(volume,&slot);
+    if(rc!=IFS_FS_OK)return rc;
+    return release_mount(slot,hfsplus_catalog_label_v2(&slot->catalog,out,cap,bytes));
+}
+static int metadata_get(void *volume,const char *path,IfsFsMetadataV2 *out)
+{
+    HfsPlusSession *slot;
+    int rc=acquire_mount(volume,&slot);
+    if(rc!=IFS_FS_OK)return rc;
+    return release_mount(slot,hfsplus_catalog_metadata_v2(&slot->catalog,path,out));
+}
+static const IfsFsMetadataOpsV2 metadata_ops={
+    .header={IFS_FS_GROUP_ABI_V2,sizeof(metadata_ops),IFS_FS_GROUP_METADATA,0u,IFS_FS_META_GET_MODE},
+    .get=metadata_get
+};
 static const IfsFsVolumeOpsV2 volume_ops={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsVolumeOpsV2),
-             IFS_FS_GROUP_VOLUME,0u,IFS_FS_VOLUME_QUERY
+             IFS_FS_GROUP_VOLUME,0u,IFS_FS_VOLUME_QUERY|IFS_FS_VOLUME_LABEL_GET
 #ifndef IFS_HFSPLUS_FIRMWARE_BUILD
              |IFS_FS_VOLUME_FORMAT
 #endif
     },
-    .query=query_volume
+    .query=query_volume,.label=volume_label
 #ifndef IFS_HFSPLUS_FIRMWARE_BUILD
     ,.format=format_volume
 #endif
@@ -422,6 +442,7 @@ static const IfsFsGroupHeaderV2 *query(
     if(minimum>IFS_FS_GROUP_ABI_V2 || maximum<IFS_FS_GROUP_ABI_V2)return NULL;
     if(id==IFS_FS_GROUP_CORE)return &core.header;
     if(id==IFS_FS_GROUP_VOLUME)return &volume_ops.header;
+    if(id==IFS_FS_GROUP_METADATA)return &metadata_ops.header;
     return NULL;
 }
 __attribute__((used,section(".ifsmeta")))
@@ -436,7 +457,7 @@ static const IfsFsModuleApiV2 descriptor={
     .runtime_profiles=IFS_FS_PROFILE_HOSTED,
 #endif
     .group_mask=IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
-                IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME),
+                IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)|IFS_FS_GROUP_BIT(IFS_FS_GROUP_METADATA),
     .query_group=query
 };
 __attribute__((visibility("default")))

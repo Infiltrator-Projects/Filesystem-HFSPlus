@@ -50,6 +50,8 @@ static void catalog_record(unsigned start,uint32_t parent,const char *name,
     unsigned value=start+8u+2u*length;
     u16(value,(uint16_t)(directory?1u:2u));
     u32(value+8u,cnid);
+    u32(value+32u,123456u);u32(value+36u,654321u);
+    u16(value+42u,(uint16_t)(directory?0040755u:0100644u));
     if(!directory) {
         size_t bytes=strlen(contents);
         u64(value+88u,bytes);
@@ -115,7 +117,7 @@ int main(void) {
     CHECK(ifs_fs_api_v2_valid(api,"hfsplus"));
     CHECK(api->runtime_profiles==IFS_FS_PROFILE_HOSTED);
     CHECK(api->group_mask==(IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
-                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)));
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)|IFS_FS_GROUP_BIT(IFS_FS_GROUP_METADATA)));
     const IfsFsCoreOpsV2 *core=
         (const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
     const IfsFsVolumeOpsV2 *ops=
@@ -125,7 +127,7 @@ int main(void) {
            IFS_FS_CORE_STAT|IFS_FS_CORE_LIST|IFS_FS_CORE_READ));
     CHECK(core->stat && core->directory_entry && core->read);
     CHECK(core->probe && core->mount && core->unmount && !core->write);
-    CHECK(ops && ops->header.capabilities==(IFS_FS_VOLUME_QUERY|IFS_FS_VOLUME_FORMAT) &&
+    CHECK(ops && ops->header.capabilities==(IFS_FS_VOLUME_QUERY|IFS_FS_VOLUME_FORMAT|IFS_FS_VOLUME_LABEL_GET) &&
           ops->query && ops->format && !ops->repair);
     CHECK(!ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG));
     IfsFsHostRuntimeV2 host={0};
@@ -165,6 +167,13 @@ int main(void) {
     CHECK(ifs_fs_host_v2_valid(&host));
     CHECK(core->mount(&host,&volume,&info)==IFS_FS_OK && volume);
     stale=volume;
+    const IfsFsMetadataOpsV2 *meta=(const void *)ifs_fs_group_v2(api,IFS_FS_GROUP_METADATA);
+    IfsFsMetadataV2 metadata={.structure_bytes=sizeof(metadata)};
+    CHECK(meta && meta->get && !meta->set && ops->label && !ops->set_label);
+    CHECK(meta->get(volume,"/kernel.img",&metadata)==IFS_FS_OK &&
+          metadata.mode==0100644u && metadata.owner==123456u && metadata.group==654321u);
+    CHECK(meta->get(volume,"/Boot",&metadata)==IFS_FS_OK && metadata.mode==0040755u);
+    CHECK(meta->get(volume,"/absent",&metadata)==IFS_FS_NOT_FOUND);
     CHECK(info.variant==4u && info.block_bytes==4096u &&
           info.total_bytes==614400u && info.free_bytes==286720u &&
           info.max_name_bytes==765u);
