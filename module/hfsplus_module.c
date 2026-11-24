@@ -7,6 +7,7 @@
 #include <infiltratr/filesystem_module_v2.h>
 #include "hfsplus_catalog_v2.h"
 #include <stdint.h>
+#include <stdatomic.h>
 #include <stddef.h>
 #include <string.h>
 static uint16_t be16(const unsigned char *p) {
@@ -68,19 +69,50 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
 #define HFSPLUS_MAX_SESSIONS 32u
 typedef struct {
     uintptr_t token;
+    unsigned busy;
     IfsFsHostRuntimeV2 host;
     IfsFsVolumeInfoV2 info;
     HfsPlusCatalogV2 catalog;
 } HfsPlusSession;
 static HfsPlusSession sessions[HFSPLUS_MAX_SESSIONS];
 static uintptr_t token_sequence;
-static HfsPlusSession *find_session(void *handle)
+/* A short registry lock protects token allocation and exclusive per-volume
+ * operation leases. The lock is never held across host I/O. A busy volume
+ * returns BUSY rather than racing catalogue state or blocking a callback. */
+static atomic_flag registry_guard=ATOMIC_FLAG_INIT;
+static void lock_registry(void)
 {
-    uintptr_t token=(uintptr_t)handle;
-    if(!token)return NULL;
-    for(unsigned i=0;i<HFSPLUS_MAX_SESSIONS;++i)
-        if(sessions[i].token==token)return &sessions[i];
-    return NULL;
+    while (atomic_flag_test_and_set_explicit(&registry_guard,memory_order_acquire)) {}
+}
+static void unlock_registry(void)
+{
+    atomic_flag_clear_explicit(&registry_guard,memory_order_release);
+}
+static int acquire_mount(void *handle,HfsPlusSession **out)
+{
+    int rc=IFS_FS_INVALID;
+    *out=NULL;
+    if (!handle) return rc;
+    lock_registry();
+    for (unsigned i=0;i<HFSPLUS_MAX_SESSIONS;++i) {
+        if (sessions[i].token!=(uintptr_t)handle) continue;
+        if (sessions[i].busy) rc=IFS_FS_BUSY;
+        else {
+            sessions[i].busy=1u;
+            *out=&sessions[i];
+            rc=IFS_FS_OK;
+        }
+        break;
+    }
+    unlock_registry();
+    return rc;
+}
+static int release_mount(HfsPlusSession *slot,int rc)
+{
+    lock_registry();
+    slot->busy=0u;
+    unlock_registry();
+    return rc;
 }
 static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
                         IfsFsVolumeInfoV2 *info)
@@ -92,11 +124,23 @@ static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
        !ifs_fs_host_v2_valid(host))return IFS_FS_INVALID;
     *volume=NULL;
     if(!(host->capabilities&IFS_FS_HOST_READ_ONLY))return IFS_FS_ACCESS;
-    for(unsigned i=0;i<HFSPLUS_MAX_SESSIONS;++i)
-        if(!sessions[i].token){slot=&sessions[i];break;}
-    if(!slot || token_sequence==UINTPTR_MAX)return IFS_FS_BUSY;
     int rc=examine(host,&variant,&measured);
-    if(rc!=IFS_FS_OK)return rc;
+    if (rc!=IFS_FS_OK) return rc;
+    lock_registry();
+    for (unsigned i=0;i<HFSPLUS_MAX_SESSIONS;++i)
+        if (!sessions[i].token && !sessions[i].busy) {
+            slot=&sessions[i];
+            break;
+        }
+    if (!slot || token_sequence==UINTPTR_MAX) {
+        unlock_registry();
+        return IFS_FS_BUSY;
+    }
+    /* Reserve the stable slot before opening the catalogue, but do not
+     * publish its token until the native reader has fully initialized. */
+    slot->busy=1u;
+    const uintptr_t token=++token_sequence;
+    unlock_registry();
     memset(&slot->host,0,sizeof(slot->host));
     size_t copied=host->structure_bytes<sizeof(slot->host)?
                   host->structure_bytes:sizeof(slot->host);
@@ -104,51 +148,64 @@ static int mount_volume(const IfsFsHostRuntimeV2 *host,void **volume,
     slot->host.structure_bytes=(uint32_t)copied;
     slot->info=measured;
     rc=hfsplus_catalog_open_v2(&slot->host,&slot->catalog);
-    if(rc!=IFS_FS_OK) {
+    if (rc!=IFS_FS_OK) {
         slot->host=(IfsFsHostRuntimeV2){0};
-        return rc;
+        slot->info=(IfsFsVolumeInfoV2){0};
+        return release_mount(slot,rc);
     }
-    slot->token=++token_sequence;
-    *volume=(void *)(uintptr_t)slot->token;
+    lock_registry();
+    slot->token=token;
+    slot->busy=0u;
     *info=measured;
+    *volume=(void *)token;
+    unlock_registry();
     return IFS_FS_OK;
 }
-static int unmount_volume(void *handle)
+static int unmount_volume(void *volume)
 {
-    HfsPlusSession *slot=find_session(handle);
-    if(!slot)return IFS_FS_INVALID;
-    slot->token=0;
+    HfsPlusSession *slot;
+    int rc=acquire_mount(volume,&slot);
+    if (rc!=IFS_FS_OK) return rc;
     hfsplus_catalog_close_v2(&slot->catalog);
     slot->host=(IfsFsHostRuntimeV2){0};
     slot->info=(IfsFsVolumeInfoV2){0};
+    lock_registry();
+    slot->token=0u;
+    slot->busy=0u;
+    unlock_registry();
     return IFS_FS_OK;
 }
-static int query_volume(void *handle,IfsFsVolumeInfoV2 *info)
+static int query_volume(void *volume,IfsFsVolumeInfoV2 *info)
 {
-    HfsPlusSession *slot=find_session(handle);
-    if(!slot || !info || info->structure_bytes<sizeof(*info))
-        return IFS_FS_INVALID;
+    HfsPlusSession *slot;
+    if (!info || info->structure_bytes<sizeof(*info)) return IFS_FS_INVALID;
+    int rc=acquire_mount(volume,&slot);
+    if (rc!=IFS_FS_OK) return rc;
     *info=slot->info;
-    return IFS_FS_OK;
+    return release_mount(slot,IFS_FS_OK);
 }
-static int stat_path(void *handle,const char *path,IfsFsEntryV2 *entry)
+static int stat_path(void *volume,const char *path,IfsFsEntryV2 *entry)
 {
-    HfsPlusSession *slot=find_session(handle);
-    return slot?hfsplus_catalog_stat_v2(&slot->catalog,path,entry):IFS_FS_INVALID;
+    HfsPlusSession *slot;
+    int rc=acquire_mount(volume,&slot);
+    if (rc!=IFS_FS_OK) return rc;
+    return release_mount(slot,hfsplus_catalog_stat_v2(&slot->catalog,path,entry));
 }
-static int list_path(void *handle,const char *path,uint32_t index,
+static int list_path(void *volume,const char *path,uint32_t index,
                      IfsFsEntryV2 *entry)
 {
-    HfsPlusSession *slot=find_session(handle);
-    return slot?hfsplus_catalog_list_v2(&slot->catalog,path,index,entry):
-                IFS_FS_INVALID;
+    HfsPlusSession *slot;
+    int rc=acquire_mount(volume,&slot);
+    if (rc!=IFS_FS_OK) return rc;
+    return release_mount(slot,hfsplus_catalog_list_v2(&slot->catalog,path,index,entry));
 }
-static int read_path(void *handle,const char *path,uint64_t offset,
-                     void *out,uint32_t count)
+static int read_path(void *volume,const char *path,uint64_t offset,
+                     void *destination,uint32_t length)
 {
-    HfsPlusSession *slot=find_session(handle);
-    return slot?hfsplus_catalog_read_v2(&slot->catalog,path,offset,out,count):
-                IFS_FS_INVALID;
+    HfsPlusSession *slot;
+    int rc=acquire_mount(volume,&slot);
+    if (rc!=IFS_FS_OK) return rc;
+    return release_mount(slot,hfsplus_catalog_read_v2(&slot->catalog,path,offset,destination,length));
 }
 static const IfsFsCoreOpsV2 core={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsCoreOpsV2),
