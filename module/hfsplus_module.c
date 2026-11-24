@@ -317,7 +317,9 @@ static int format_impl(const IfsFsHostRuntimeV2 *h,uint32_t variant,
     uint32_t at=14u;
     store16(block+FORMAT_BLOCK-2u,at);
     uint8_t *value=block+at+format_key(block+at,1u,label,n);
-    store16(value,1u);store16(value+2,2u);store32(value+8,2u);
+    /* Directory threads are mandatory; the file-only thread-exists flag
+     * must remain clear on a folder record (TN1150). */
+    store16(value,1u);store32(value+8,2u);
     store32(value+12,now);store32(value+16,now);
     store32(value+20,now);store32(value+24,now);
     store16(value+42,0040755u);
