@@ -81,6 +81,17 @@ if(BUILD_TESTING)
     set_tests_properties(hfsplus-v2-independent-real-media
       PROPERTIES TIMEOUT 120)
   endif()
+  add_executable(hfsplus-native-format-test tests/test_format.c)
+  target_link_libraries(hfsplus-native-format-test PRIVATE InfiltratrCommon::Common ${CMAKE_DL_LIBS})
+  target_compile_options(hfsplus-native-format-test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  find_program(HFSPLUS_FSCK NAMES fsck.hfsplus)
+  if(HFSPLUS_FSCK)
+    add_test(NAME hfsplus-native-format COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tests/format_oracle.sh"
+        "$<TARGET_FILE:hfsplus-native-format-test>" "$<TARGET_FILE:hfsplus-driver>" "${HFSPLUS_FSCK}")
+  else()
+    add_test(NAME hfsplus-native-format COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tests/format_oracle.sh"
+        "$<TARGET_FILE:hfsplus-native-format-test>" "$<TARGET_FILE:hfsplus-driver>")
+  endif()
   add_executable(hfsplus-module-test tests/test_module.c)
   target_include_directories(hfsplus-module-test PRIVATE
     "${infiltratr_common_SOURCE_DIR}/include")
