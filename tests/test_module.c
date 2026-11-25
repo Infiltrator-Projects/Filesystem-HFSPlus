@@ -117,7 +117,8 @@ int main(void) {
     CHECK(ifs_fs_api_v2_valid(api,"hfsplus"));
     CHECK(api->runtime_profiles==IFS_FS_PROFILE_HOSTED);
     CHECK(api->group_mask==(IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
-                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)|IFS_FS_GROUP_BIT(IFS_FS_GROUP_METADATA)));
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)|IFS_FS_GROUP_BIT(IFS_FS_GROUP_METADATA)|
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_DEFRAG)));
     const IfsFsCoreOpsV2 *core=
         (const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
     const IfsFsVolumeOpsV2 *ops=
@@ -129,7 +130,8 @@ int main(void) {
     CHECK(core->probe && core->mount && core->unmount && !core->write);
     CHECK(ops && ops->header.capabilities==(IFS_FS_VOLUME_QUERY|IFS_FS_VOLUME_FORMAT|IFS_FS_VOLUME_LABEL_GET) &&
           ops->query && ops->format && !ops->repair);
-    CHECK(!ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG));
+    const IfsFsDefragOpsV2 *map=(const void *)ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG);
+    CHECK(map && map->header.capabilities==IFS_FS_DEFRAG_MAP && map->map);
     IfsFsHostRuntimeV2 host={0};
     host.abi_version=IFS_FS_HOST_ABI_V2;
     host.structure_bytes=sizeof(host);

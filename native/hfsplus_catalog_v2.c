@@ -506,3 +506,56 @@ int hfsplus_catalog_read_v2(const HfsPlusCatalogV2 *v,const char *path,
     if(rc!=IFS_FS_OK)return rc;
     return fork_read_raw(v,&file.fork,offset,dst,n);
 }
+
+/* Map the actual data fork using the same validated allocation file and
+ * pathname traversal as READ. An incomplete overflow fork is unsupported,
+ * not EOF. Validate all physical allocations before returning any page. */
+int hfsplus_catalog_map_v2(const HfsPlusCatalogV2 *v,const char *path,
+                          uint64_t first,IfsFsExtentV2 *out,
+                          uint32_t capacity,uint32_t *count)
+{
+    if(!count)return IFS_FS_INVALID;
+    *count=0u;
+    if(!v || !out || !capacity)return IFS_FS_INVALID;
+    HfsPlusEntry file;
+    int rc=lookup(v,path,&file);
+    if(rc!=IFS_FS_OK)return rc;
+    if(file.type!=IFS_FS_ENTRY_FILE)return IFS_FS_INVALID;
+    rc=validate_extent_allocation(v,&file.fork);
+    if(rc!=IFS_FS_OK)return rc;
+    IfsFsExtentV2 complete[8]={{0}};
+    uint32_t total=0u;
+    uint64_t logical=0u;
+    for(unsigned i=0u;i<8u;++i) {
+        const HfsPlusExtentV2 *e=&file.fork.extents[i];
+        if(!e->count)continue;
+        for(unsigned j=0u;j<i;++j) {
+            const HfsPlusExtentV2 *other=&file.fork.extents[j];
+            if(other->count && e->start<other->start+other->count &&
+               other->start<e->start+e->count)
+                return IFS_FS_CORRUPT;
+        }
+        uint64_t physical=(uint64_t)e->start*v->block_bytes;
+        uint64_t allocated=(uint64_t)e->count*v->block_bytes;
+        if(physical>v->host->volume_bytes ||
+           allocated>v->host->volume_bytes-physical)
+            return IFS_FS_CORRUPT;
+        if(logical==file.fork.length)continue;
+        uint64_t length=file.fork.length-logical;
+        if(length>allocated)length=allocated;
+        if(total && complete[total-1u].physical_offset+
+            complete[total-1u].length==physical)
+            complete[total-1u].length+=length;
+        else
+            complete[total++]=(IfsFsExtentV2){
+                .logical_offset=logical,.physical_offset=physical,.length=length};
+        logical+=length;
+    }
+    if(logical!=file.fork.length)return IFS_FS_CORRUPT;
+    if(first>=total)return IFS_FS_END;
+    uint32_t take=total-(uint32_t)first;
+    if(take>capacity)take=capacity;
+    memcpy(out,complete+(uint32_t)first,take*sizeof(*out));
+    *count=take;
+    return IFS_FS_OK;
+}
