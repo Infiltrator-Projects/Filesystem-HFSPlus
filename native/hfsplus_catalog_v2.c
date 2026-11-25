@@ -129,7 +129,7 @@ int hfsplus_catalog_open_v2(const IfsFsHostRuntimeV2 *host,HfsPlusCatalogV2 *v)
     parse_fork(vh+272,&v->catalog);
     if(!v->bitmap_fork.length || !v->catalog.length)
         return IFS_FS_UNSUPPORTED;
-    v->bitmap_bytes=(v->blocks+7u)/8u;
+    v->bitmap_bytes=v->blocks/8u+(v->blocks%8u!=0u);
     if(v->bitmap_fork.length<v->bitmap_bytes)
         return IFS_FS_CORRUPT;
     v->bitmap=host->allocate(host->context,v->bitmap_bytes);
@@ -310,7 +310,7 @@ typedef struct {
     const char *name;
     uint32_t name_bytes;
     HfsPlusEntry result;
-    int found,unsupported,root_record;
+    int found,unsupported,root_record,verify_allocation;
 } HfsPlusScan;
 static int matches(const HfsPlusCatalogV2 *v,const HfsPlusEntry *e,
                    const HfsPlusScan *s)
@@ -366,6 +366,17 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
             HfsPlusEntry record;
             rc=decode_record(node,v->node_bytes,begin,finish,&record);
             if(rc!=IFS_FS_OK)goto done;
+            if(scan->verify_allocation) {
+                if(record.type==IFS_FS_ENTRY_FILE) {
+                    rc=validate_extent_allocation(v,&record.fork);
+                    if(rc!=IFS_FS_OK)goto done;
+                    HfsPlusForkV2 resource;
+                    parse_fork(node+begin+2u+rd16(node+begin)+168u,&resource);
+                    rc=validate_extent_allocation(v,&resource);
+                    if(rc!=IFS_FS_OK)goto done;
+                }
+                continue;
+            }
             if(is_private_metadata_directory(&record))
                 continue;
             int eq=matches(v,&record,scan);
@@ -384,7 +395,8 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
         }
         uint32_t next=rd32(node);
         if(!next){
-            rc=(scan->name || scan->root_record) && scan->found?IFS_FS_OK:IFS_FS_NOT_FOUND;
+            rc=scan->verify_allocation ||
+                ((scan->name || scan->root_record) && scan->found)?IFS_FS_OK:IFS_FS_NOT_FOUND;
             goto done;
         }
         if(next>=v->node_count || next==current) {
@@ -396,6 +408,80 @@ static int catalog_scan(const HfsPlusCatalogV2 *v,HfsPlusScan *scan)
 done:
     v->host->release(v->host->context,node);
     return rc;
+}
+/* Publish only the native allocation file of a clean snapshot. Verify
+ * the volume's special forks, both reserved header regions, and every
+ * catalogued data/resource fork. Overflow extents and live journal
+ * transactions require the missing native replay/overflow engine.
+ */
+static int validate_allocation_snapshot(HfsPlusCatalogV2 *v)
+{
+    uint8_t header[512];
+    int rc=read_bytes(v->host,1024u,header,sizeof(header));
+    if(rc!=IFS_FS_OK)return rc;
+    const uint32_t attrs=rd32(header+4u);
+    if(!(attrs&(1u<<8)) || (attrs&(1u<<11)))return IFS_FS_CORRUPT;
+    if(attrs&(1u<<13))return IFS_FS_UNSUPPORTED;
+    if(rd32(header+40u)!=v->block_bytes || rd32(header+44u)!=v->blocks)
+        return IFS_FS_CORRUPT;
+    for(unsigned offset=112u;offset<=432u;offset+=80u) {
+        HfsPlusForkV2 fork;
+        parse_fork(header+offset,&fork);
+        rc=validate_extent_allocation(v,&fork);
+        if(rc!=IFS_FS_OK)return rc;
+    }
+    const uint64_t fs_bytes=(uint64_t)v->blocks*v->block_bytes;
+    if(fs_bytes<2048u)return IFS_FS_CORRUPT;
+    for(uint32_t b=0u;b<1536u/v->block_bytes+(1536u%v->block_bytes!=0u);++b)
+        if(!(v->bitmap[b>>3u]&(uint8_t)(0x80u>>(b&7u))))return IFS_FS_CORRUPT;
+    for(uint64_t b=(fs_bytes-1024u)/v->block_bytes;b<v->blocks;++b)
+        if(!(v->bitmap[b>>3u]&(uint8_t)(0x80u>>(b&7u))))return IFS_FS_CORRUPT;
+    HfsPlusScan scan={.verify_allocation=1};
+    rc=catalog_scan(v,&scan);
+    if(rc==IFS_FS_NOT_FOUND)return IFS_FS_CORRUPT;
+    return rc;
+}
+int hfsplus_allocation_map_v2(HfsPlusCatalogV2 *v,uint64_t first,
+                             IfsFsAllocationRangeV2 *out,uint32_t capacity,
+                             uint32_t *written)
+{
+    if(!written)return IFS_FS_INVALID;
+    *written=0u;
+    if(!v||!v->host||!v->bitmap||!out||!capacity||capacity>64u||
+       first>v->host->volume_bytes)return IFS_FS_INVALID;
+    if(v->mutation_fault)return IFS_FS_IO_ERROR;
+    if(!first||!v->allocation_verified) {
+        int rc=validate_allocation_snapshot(v);
+        if(rc!=IFS_FS_OK)return rc;
+        v->allocation_verified=1u;
+    }
+    const uint64_t limit=v->host->volume_bytes;
+    if(first==limit)return IFS_FS_END;
+    IfsFsAllocationRangeV2 page[64]={{0}};
+    uint64_t at=first;
+    uint32_t count=0u,scanned=0u;
+    while(at<limit && scanned<65536u) {
+        if(v->host->cancelled && v->host->cancelled(v->host->context))
+            return IFS_FS_BUSY;
+        uint64_t block=at/v->block_bytes,end;
+        uint32_t state;
+        if(block>=v->blocks) {
+            state=IFS_FS_SPACE_RESERVED;end=limit;
+        } else {
+            state=(v->bitmap[block>>3u]&(uint8_t)(0x80u>>(block&7u)))?
+                IFS_FS_SPACE_ALLOCATED:IFS_FS_SPACE_FREE;
+            end=(block+1u)*v->block_bytes;
+        }
+        if(count && page[count-1u].state==state)page[count-1u].length+=end-at;
+        else {
+            if(count==capacity)break;
+            page[count++]=(IfsFsAllocationRangeV2){
+                .physical_offset=at,.length=end-at,.state=state};
+        }
+        at=end;++scanned;
+    }
+    memcpy(out,page,count*sizeof(*page));*written=count;
+    return IFS_FS_OK;
 }
 static int lookup(const HfsPlusCatalogV2 *v,const char *path,HfsPlusEntry *e)
 {
@@ -802,6 +888,7 @@ static int mut_commit(HfsPlusMutation *t)
     mut32(t->header+68u,rd32(t->header+68u)+1u);
     uint8_t dirty[512];
     memcpy(dirty,t->header,sizeof(dirty));mut32(dirty+4u,0x800u);
+    v->allocation_verified=0u;
     v->mutation_fault=1u;
     int rc=mut_write_bytes(h,h->volume_bytes-1024u,dirty,sizeof(dirty));
     if(rc==IFS_FS_OK)rc=mut_write_bytes(h,1024u,dirty,sizeof(dirty));

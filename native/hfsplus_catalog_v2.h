@@ -22,7 +22,7 @@ typedef struct {
     HfsPlusForkV2 catalog, bitmap_fork;
     uint8_t *bitmap;
     uint32_t bitmap_bytes;
-    unsigned mutation_fault;
+    unsigned mutation_fault,allocation_verified;
 } HfsPlusCatalogV2;
 int hfsplus_catalog_open_v2(const IfsFsHostRuntimeV2 *, HfsPlusCatalogV2 *);
 void hfsplus_catalog_close_v2(HfsPlusCatalogV2 *);
@@ -33,6 +33,8 @@ int hfsplus_catalog_list_v2(const HfsPlusCatalogV2 *, const char *, uint32_t, If
 int hfsplus_catalog_read_v2(const HfsPlusCatalogV2 *, const char *, uint64_t, void *, uint32_t);
 int hfsplus_catalog_map_v2(const HfsPlusCatalogV2 *, const char *, uint64_t,
                           IfsFsExtentV2 *, uint32_t, uint32_t *);
+int hfsplus_allocation_map_v2(HfsPlusCatalogV2 *,uint64_t,IfsFsAllocationRangeV2 *,
+                             uint32_t,uint32_t *);
 #ifndef IFS_HFSPLUS_FIRMWARE_BUILD
 int hfsplus_catalog_mutable_v2(HfsPlusCatalogV2 *);
 int hfsplus_catalog_create_v2(HfsPlusCatalogV2 *,const char *,uint32_t);

@@ -243,6 +243,23 @@ static int map_file(void *volume,const char *path,uint64_t first,
     return release_mount(slot,hfsplus_catalog_map_v2(&slot->catalog,path,
                          first,out,capacity,count));
 }
+static int map_allocation(void *volume,uint64_t first,
+                          IfsFsAllocationRangeV2 *out,uint32_t capacity,
+                          uint32_t *count)
+{
+    if(!count)return IFS_FS_INVALID;
+    *count=0u;
+    HfsPlusSession *slot;
+    int rc=acquire_mount(volume,&slot);
+    if(rc!=IFS_FS_OK)return rc;
+    return release_mount(slot,hfsplus_allocation_map_v2(&slot->catalog,
+                         first,out,capacity,count));
+}
+static const IfsFsAllocationOpsV2 allocation_ops={
+    .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsAllocationOpsV2),
+             IFS_FS_GROUP_ALLOCATION,0u,IFS_FS_ALLOCATION_MAP},
+    .map=map_allocation
+};
 static const IfsFsDefragOpsV2 defrag_ops={
     .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsDefragOpsV2),
              IFS_FS_GROUP_DEFRAG,0u,IFS_FS_DEFRAG_MAP},
@@ -510,6 +527,7 @@ static const IfsFsGroupHeaderV2 *query(
     if(id==IFS_FS_GROUP_CORE)return &core.header;
     if(id==IFS_FS_GROUP_VOLUME)return &volume_ops.header;
     if(id==IFS_FS_GROUP_DEFRAG)return &defrag_ops.header;
+    if(id==IFS_FS_GROUP_ALLOCATION)return &allocation_ops.header;
     if(id==IFS_FS_GROUP_METADATA)return &metadata_ops.header;
     return NULL;
 }
@@ -526,7 +544,8 @@ static const IfsFsModuleApiV2 descriptor={
 #endif
     .group_mask=IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE)|
                 IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)|IFS_FS_GROUP_BIT(IFS_FS_GROUP_METADATA)|
-                IFS_FS_GROUP_BIT(IFS_FS_GROUP_DEFRAG),
+                IFS_FS_GROUP_BIT(IFS_FS_GROUP_DEFRAG)|
+                IFS_FS_GROUP_BIT(IFS_FS_GROUP_ALLOCATION),
     .query_group=query
 };
 __attribute__((visibility("default")))

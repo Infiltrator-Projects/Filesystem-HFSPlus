@@ -122,6 +122,25 @@ int main(int argc,char **argv)
     CHECK(core->mount(&ro,&mount,&info)==IFS_FS_OK && mount);
     const IfsFsDefragOpsV2 *map=(const void *)ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG);
     CHECK(map && map->map);
+    const IfsFsAllocationOpsV2 *allocation=(const void*)
+        ifs_fs_group_v2(api,IFS_FS_GROUP_ALLOCATION);
+    CHECK(allocation && allocation->map);
+    uint64_t at=0u,unknown=0u,free_bytes=0u,used_bytes=0u;
+    for(;;) {
+        IfsFsAllocationRangeV2 ranges[3]={{0}};
+        uint64_t next=at;uint32_t count=99u;
+        int rc=allocation->map(mount,at,ranges,3u,&count);
+        CHECK(ifs_fs_allocation_page_v2_valid(m.bytes,at,rc,ranges,3u,count,&next,&unknown));
+        if(rc==IFS_FS_END)break;
+        for(uint32_t j=0u;j<count;++j) {
+            if(ranges[j].state==IFS_FS_SPACE_FREE)free_bytes+=ranges[j].length;
+            else if(ranges[j].state==IFS_FS_SPACE_ALLOCATED ||
+                    ranges[j].state==IFS_FS_SPACE_RESERVED)used_bytes+=ranges[j].length;
+        }
+        CHECK(next>at);at=next;
+    }
+    CHECK(at==m.bytes && !unknown && free_bytes==info.free_bytes &&
+          used_bytes && free_bytes+used_bytes==m.bytes);
     for(unsigned i=0u;i<16u;++i) {
         snprintf(path,sizeof(path),"/test%02u.bin",i);
         CHECK(core->stat(mount,path,&entry)==IFS_FS_OK && entry.size_bytes==8192u);
