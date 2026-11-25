@@ -286,7 +286,10 @@ static int format_impl(const IfsFsHostRuntimeV2 *h,uint32_t variant,
     }
     (void)flags;
     uint8_t block[FORMAT_BLOCK]={0},vh[512]={0};
-    int rc;
+    /* HFS+ stores its 64-bit volume identity in Finder info. Acquire
+     * entropy before invalidating either old header or writing metadata. */
+    int rc=ifs_fs_host_random_bytes_v2(h,vh+104,8u);
+    if(rc!=IFS_FS_OK)return rc;
     /* Invalidate both volume headers and any boot blocks before touching
      * metadata; write the alternate then primary header only after flush. */
     rc=format_write(h,0u,block,sizeof(block));
@@ -343,10 +346,6 @@ static int format_impl(const IfsFsHostRuntimeV2 *h,uint32_t variant,
     store32(vh+56,FORMAT_BLOCK);store32(vh+60,FORMAT_BLOCK);
     store32(vh+64,16u);store32(vh+68,1u);
     store64(vh+72,1u); /* MacRoman encoding bitmap */
-    if(h->structure_bytes>=sizeof(*h) && h->random_bytes) {
-        rc=ifs_fs_host_random_bytes_v2(h,vh+104,8u);
-        if(rc!=IFS_FS_OK)return rc;
-    }
     format_fork(vh+112,1u,bitmap_blocks);
     format_fork(vh+192,extents,1u);
     format_fork(vh+272,catalog,2u);

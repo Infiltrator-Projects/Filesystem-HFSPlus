@@ -28,6 +28,8 @@ static void *allocate(void *ctx,size_t n){(void)ctx;return malloc(n);}
 static void release(void *ctx,void *p){(void)ctx;free(p);}
 static int entropy(void *ctx,void *p,uint32_t n)
 {(void)ctx;return getrandom(p,n,0)==(ssize_t)n?0:-1;}
+static int fail_entropy(void *ctx,void *p,uint32_t n)
+{(void)ctx;(void)p;(void)n;return -1;}
 #define CHECK(x) do {if(!(x)){fprintf(stderr,"HFS+ format line %d: %s\n",__LINE__,#x);goto done;}}while(0)
 int main(int argc,char **argv)
 {
@@ -62,7 +64,22 @@ int main(int argc,char **argv)
     CHECK(vol->format(&h,3u,"NativeHFS",0u)==IFS_FS_UNSUPPORTED);
     CHECK(vol->format(&h,variant,"Invalid:Name",0u)==IFS_FS_INVALID);
     CHECK(!m.writes);
+    /* Losing access to entropy must leave a pre-existing volume intact. */
     CHECK(vol->format(&h,variant,"NativeHFS",0u)==IFS_FS_OK);
+    uint8_t previous[512],after[512];
+    CHECK(pread(m.fd,previous,sizeof(previous),1024)==(ssize_t)sizeof(previous));
+    const unsigned initial_writes=m.writes;
+    h.random_bytes=NULL;
+    CHECK(vol->format(&h,variant,"NativeHFS",0u)==IFS_FS_UNSUPPORTED);
+    h.random_bytes=fail_entropy;
+    CHECK(vol->format(&h,variant,"NativeHFS",0u)==IFS_FS_IO_ERROR);
+    CHECK(m.writes==initial_writes);
+    CHECK(pread(m.fd,after,sizeof(after),1024)==(ssize_t)sizeof(after));
+    CHECK(!memcmp(previous,after,sizeof(previous)));
+    h.random_bytes=entropy;
+    CHECK(vol->format(&h,variant,"NativeHFS",0u)==IFS_FS_OK);
+    CHECK(pread(m.fd,after,sizeof(after),1024)==(ssize_t)sizeof(after));
+    CHECK(memcmp(previous+104u,after+104u,8u)!=0);
     uint32_t detected=0;void *mount=NULL;
     IfsFsVolumeInfoV2 info={.structure_bytes=sizeof(info)};
     char name[128];
