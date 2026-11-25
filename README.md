@@ -1,18 +1,36 @@
 # Filesystem-HFSPlus
 
-The production provider is installed as `/System/Filesystems/HFSPLUS.so`
-and its manual as
-`/System/Resources/Documentation/Filesystem-HFSPlus.pdf`.
+## 1. Purpose and format scope
 
-Common V2 currently implements the real hfsplus on-media superblock/geometry
-probe, strict read-only metadata mount session and volume-information query.
-**It is NOT a BOOT-qualified filesystem reader.** Real Common V2 pathname
-traversal, directory enumeration, file reads, native metadata/extent engines
-and freestanding UEFI profile remain unimplemented.
+Apple HFS Plus, distinct from classic HFS. This repository owns the format-specific implementation of `HFSPLUS.so` for InfiltratorOS.
 
-The original native source, writer, worker, fixture and Linux implementation
-remain in the repository. Legacy callbacks are built solely into a
-non-installed regression library, and no filesystem-specific Linux `.ko`
-is distributed. The tested portable `.deb` and source-embedded native
-`.run` remain CI artifacts; firmware publication is deliberately withheld
-until the production validator, corrupt-media checks and OVMF handoff pass.
+## 2. On-disk architecture and invariants
+
+The volume header, allocation file, extents overflow and catalog B-tree define the volume. Interpret Unicode catalog keys and extent mappings according to the actual format, not HFS Pascal-name conventions.
+
+## 3. Common V2 implementation and capabilities
+
+The current hosted descriptor declares probe, mount, stat, directory enumeration, file read and format. The implementation acquires volume identity before destructive formatting. Hosted and freestanding qualification workflows are present. The canonical entry point is `infiltrator_filesystem_api_v2`. Consumers must negotiate the actual profile and operation masks and use bounded, partition-relative host I/O. A source-level callback does not by itself establish that every format variant or host profile is qualified.
+
+## 4. Integrity, mutation, allocation and recovery
+
+A freestanding build is not a production BOOT handoff guarantee. Check profile masks, supported catalog features, resource forks and mutation limitations before claiming compatibility. For destructive operations, require the applicable exclusive writable host, durability contract and format-specific validation. Never silently substitute a kernel or FUSE driver or treat a rejected or unavailable operation as success. Preserve original disk-format semantics; relocation and recovery are separate from ordinary file I/O.
+
+## 5. Build, installation and release
+
+The target installation is `/System/Filesystems/HFSPLUS.so` and `/System/Resources/Documentation/Filesystem-HFSPlus.pdf`. The project release policy is a portable amd64 DEB and a CPU-native source-first RUN, with GitHub's automatic source archive; do not treat this policy statement as verification of the current installer payload. The release workflow is the authoritative executable build and package specification. Historical adapters and test artifacts are not additional production filesystem authorities.
+
+## 6. Qualification and limitations
+
+[Recorded qualification workflow](https://github.com/Infiltrator-Projects/Filesystem-HFSPlus/actions/runs/45520343723) · [Current workflows](https://github.com/Infiltrator-Projects/Filesystem-HFSPlus/actions?query=branch%3Amain). A successful workflow establishes the tested scope only, not complete original-format parity, physical-media crash safety, or production BOOT/kernel integration. Use disposable images for destructive qualification.
+
+## 7. Technical references and provenance
+
+- [Provider implementation](module/hfsplus_module.c)
+- [Native design](native/filesystems/hfsplus/DESIGN.md)
+- [Migration and source history](MIGRATION_STATUS.md)
+- [Original-format reference source](docs/HFSPlus.pages) and [PDF](docs/HFSPlus.pdf)
+- [Project philosophy](docs/PHILOSOPHY.md)
+- [Common ABI](https://github.com/Infiltrator-Projects/Libraries)
+
+The original-format reference and historical migration notes describe different evidence from the current production provider. When descriptions disagree, the current exported descriptor, implementation, executable tests and exact-revision release evidence take precedence.
