@@ -125,9 +125,9 @@ int main(void) {
         (const IfsFsVolumeOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_VOLUME);
     CHECK(core && core->header.capabilities==
           (IFS_FS_CORE_PROBE|IFS_FS_CORE_MOUNT|
-           IFS_FS_CORE_STAT|IFS_FS_CORE_LIST|IFS_FS_CORE_READ));
+           IFS_FS_CORE_STAT|IFS_FS_CORE_LIST|IFS_FS_CORE_READ|IFS_FS_CORE_CREATE|IFS_FS_CORE_WRITE));
     CHECK(core->stat && core->directory_entry && core->read);
-    CHECK(core->probe && core->mount && core->unmount && !core->write);
+    CHECK(core->probe && core->mount && core->unmount && core->create && core->write);
     CHECK(ops && ops->header.capabilities==(IFS_FS_VOLUME_QUERY|IFS_FS_VOLUME_FORMAT|IFS_FS_VOLUME_LABEL_GET) &&
           ops->query && ops->format && !ops->repair);
     const IfsFsDefragOpsV2 *map=(const void *)ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG);

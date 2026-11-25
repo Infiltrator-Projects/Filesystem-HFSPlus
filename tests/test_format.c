@@ -87,7 +87,7 @@ int main(int argc,char **argv)
     CHECK(core->probe(&ro,&detected)==IFS_FS_OK && detected==variant);
     CHECK(core->mount(&ro,&mount,&info)==IFS_FS_OK && mount);
     CHECK(info.variant==variant && info.total_bytes==m.bytes &&
-          info.free_bytes==m.bytes-6u*4096u);
+          info.free_bytes==m.bytes-8u*4096u);
     char label[128],tiny[2]={'X','X'};
     uint32_t label_bytes=UINT32_MAX;
     CHECK(vol->label && !vol->set_label &&
@@ -103,7 +103,41 @@ int main(int argc,char **argv)
     CHECK(core->directory_entry(mount,"/",0u,&entry)==IFS_FS_END);
     CHECK(vol->format(&h,variant,"NativeHFS",0u)==IFS_FS_BUSY);
     CHECK(core->unmount(mount)==IFS_FS_OK);
-    CHECK(core->mount(&h,&mount,&info)==IFS_FS_ACCESS && !mount);
+    CHECK(core->mount(&h,&mount,&info)==IFS_FS_OK && mount);
+    CHECK(core->create && core->write);
+    char path[32];uint8_t payload[4096],actual[4096];
+    for(unsigned i=0u;i<16u;++i) {
+        snprintf(path,sizeof(path),"/test%02u.bin",i);
+        CHECK(core->create(mount,path,IFS_FS_ENTRY_FILE)==IFS_FS_OK);
+        CHECK(core->create(mount,path,IFS_FS_ENTRY_FILE)==IFS_FS_EXISTS);
+    }
+    for(unsigned phase=0u;phase<2u;++phase)
+        for(unsigned i=0u;i<16u;++i) {
+            snprintf(path,sizeof(path),"/test%02u.bin",i);
+            memset(payload,(int)(i+phase*32u),sizeof(payload));
+            CHECK(core->write(mount,path,(uint64_t)phase*sizeof(payload),
+                              payload,sizeof(payload))==IFS_FS_OK);
+        }
+    CHECK(core->unmount(mount)==IFS_FS_OK);
+    CHECK(core->mount(&ro,&mount,&info)==IFS_FS_OK && mount);
+    const IfsFsDefragOpsV2 *map=(const void *)ifs_fs_group_v2(api,IFS_FS_GROUP_DEFRAG);
+    CHECK(map && map->map);
+    for(unsigned i=0u;i<16u;++i) {
+        snprintf(path,sizeof(path),"/test%02u.bin",i);
+        CHECK(core->stat(mount,path,&entry)==IFS_FS_OK && entry.size_bytes==8192u);
+        IfsFsExtentV2 ext[2]={{0}};uint32_t count=0u;
+        CHECK(map->map(mount,path,0u,ext,2u,&count)==IFS_FS_OK && count==2u);
+        CHECK(ext[0].length==4096u && ext[1].length==4096u &&
+              ext[0].physical_offset+4096u!=ext[1].physical_offset);
+        CHECK(map->map(mount,path,2u,ext,2u,&count)==IFS_FS_END && count==0u);
+        for(unsigned phase=0u;phase<2u;++phase) {
+            memset(payload,(int)(i+phase*32u),sizeof(payload));
+            CHECK(core->read(mount,path,(uint64_t)phase*sizeof(payload),
+                             actual,sizeof(actual))==IFS_FS_OK);
+            CHECK(!memcmp(payload,actual,sizeof(payload)));
+        }
+    }
+    CHECK(core->unmount(mount)==IFS_FS_OK);
     unsigned char primary[512],alternate[512];
     CHECK(pread(m.fd,primary,sizeof(primary),1024)==(ssize_t)sizeof(primary));
     CHECK(pread(m.fd,alternate,sizeof(alternate),(off_t)(m.bytes-1024u))==(ssize_t)sizeof(alternate));
