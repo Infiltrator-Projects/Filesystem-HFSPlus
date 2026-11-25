@@ -1,5 +1,13 @@
 # HFS+ / HFSX Design and Ownership
 
+## Current production architecture
+
+The independent `HFSPLUS.so` is the canonical installed filesystem provider. The current hosted descriptor declares probe, mount, stat, directory enumeration, file read, format, extent mapping, and bounded root-file creation and append. Mutation is limited to the native clean non-journalled 4 KiB allocation / 8 KiB two-node catalogue profile; names are ASCII letters, digits, period, underscore or hyphen, and data forks use at most eight inline extents. A full catalogue or fork refuses expansion rather than fabricating success. The freestanding descriptor remains read-only. Durable mutation marks the volume inconsistent before changing records and refuses further operations after a failed commit; repair and recovery are not advertised. The implementation acquires volume identity before destructive formatting. Hosted and freestanding qualification workflows are present. The canonical entry point is `infiltrator_filesystem_api_v2`. Consumers must negotiate the actual profile and operation masks and use bounded, partition-relative host I/O. A source-level callback does not by itself establish that every format variant or host profile is qualified.
+
+The hosted and freestanding profiles are qualified separately. Only the shared object and its technical PDF are installed by the filesystem package; the native RUN downloads its exact source revision. No separate per-format kernel or EFI driver or FUSE substitute is a production delivery path. See the [current README](../../../README.md) and [migration evidence](../../../MIGRATION_STATUS.md) for exact scope and qualification. The inherited design and source-ownership record below is historical where it describes older source layouts, implementation status or adapters; it remains valuable for format semantics and attribution.
+
+## Historical design and source record
+
 > **Working source (23 October 2026).** This filesystem's `linux/` directory contains the actual copied Linux implementation source, preserved with its original attribution and available for direct modification. It is not a replaceable research-only reference tree. The old independently-rewrite-first policy and any old directory-layout/refresh language below are historical, not a restriction on editing this working baseline. Only explicitly qualified drivers appear in `data/native-filesystems.tsv`.
 
 
@@ -22,9 +30,9 @@ architecture:
        adapter                 adapter
 ```
 
-## Current implementation state
+## Historical implementation state
 
-HFS+ is currently **imported-source development state**.
+HFS+ was originally documented as **imported-source development state**.
 
 There is no project-authored HFS+ canonical engine and no Filesystems
 HFS+ native driver claimed by this directory. The source under
@@ -38,7 +46,7 @@ implementation into project-authored code.
 
 The reference tree is not the permanent Filesystems source architecture.
 
-## Current directory layout
+## Historical directory layout
 
 ```text
 native/filesystems/hfsplus/
