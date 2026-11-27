@@ -2,9 +2,9 @@
 
 ## History and format discrimination
 
-HFS Plus (Mac OS Extended) arrived with Mac OS 8.1 in 1998, enlarging allocation identifiers to 32 bits and adopting Unicode names. HFSX is a related format with version-specific catalog comparison semantics. A native HFS Plus volume begins with a header at partition-relative byte 1024, signature 0x482B and version 4; HFSX uses 0x4858 and version 5. An HFS wrapper may contain an embedded HFS Plus volume: resolve the wrapper allocation origin and embedded extent rather than applying the inner header offset to the outer partition. The alternate volume header is normally 1024 bytes before the end of the inner volume. Verify both independently.
+HFS Plus (Mac OS Extended) arrived with Mac OS 8.1 in 1998, enlarging allocation identifiers to 32 bits to reduce average allocation-block waste and adopting Unicode names, as documented in Apple's TN1150. HFSX is a related version with distinct catalog comparison semantics. Optional journaling is a separate profile; neither variant inherits APFS object maps or snapshots.
 
-Apple's TN1150 identifies reduced average allocation-block waste as a major motivation, along with Unicode names and larger geometry. HFSX and optional journaling are distinct profiles. HFS Plus does not inherit APFS object maps or snapshots.
+A native HFS Plus volume begins with a header at partition-relative byte 1024, signature 0x482B and version 4; HFSX uses 0x4858 and version 5. An HFS wrapper may contain an embedded HFS Plus volume: resolve its allocation origin and embedded extent before applying the inner header offset. The alternate volume header is normally 1024 bytes before the end of the inner volume. Verify both independently.
 
 ## Volume header and special forks
 
@@ -40,4 +40,6 @@ Historical source or test reference: https://github.com/Infiltrator-Projects/Fil
 
 ## Defragmentation, formatting and references
 
-Reconstruct allocation from both forks of each file, special metadata files, overflow records and bad-block reservations; cross-check tree maps and volume bitmap. Relocation preserves fork identity, metadata and native link semantics; reserve destination, copy/verify, publish mappings under native transaction rules, then release source. Formatter must establish all special files and tree headers/maps, root and thread records, primary/alternate header and correct feature flags. Test native HFS Plus and HFSX fixtures, wrapped volumes, both forks, overflow, Unicode collisions, attributes, hard links, dirty journals and interrupted updates. Normative Apple Technical Note TN1150: https://developer.apple.com/library/archive/technotes/tn/tn1150.html ; pinned cross-check https://github.com/torvalds/linux/tree/v6.12/fs/hfsplus (hfsplus_raw.h, btree.c, extents.c, catalog.c). Earlier documentation is preserved as historical evidence; writer and replay qualification are separate.
+Reconstruct allocation from both forks of each file, special metadata files, overflow records and bad-block reservations; cross-check tree maps and volume bitmap. Relocation preserves fork identity, metadata and native link semantics: reserve destination, copy and verify, publish mappings under the native transaction rules described in Journal and volume recovery, then release source. A formatter must establish all special files and tree headers/maps, root and thread records, primary/alternate header and correct feature flags.
+
+Test native HFS Plus and HFSX fixtures, wrapped volumes, both forks, overflow, Unicode collisions, attributes, hard links, dirty journals and interrupted updates. Normative Apple Technical Note TN1150: https://developer.apple.com/library/archive/technotes/tn/tn1150.html ; pinned cross-check https://github.com/torvalds/linux/tree/v6.12/fs/hfsplus (hfsplus_raw.h, btree.c, extents.c, catalog.c).
