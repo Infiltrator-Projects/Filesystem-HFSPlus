@@ -3,7 +3,7 @@
 << /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R 30 0 R 32 0 R 34 0 R 36 0 R 38 0 R 40 0 R 42 0 R 44 0 R 46 0 R] /Count 21 >>
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R] /Count 10 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
@@ -18,634 +18,269 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 7 0 R >>
 endobj
 7 0 obj
-<< /Length 1170 >>
+<< /Length 1102 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (History and format discrimination) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(HFS Plus \(Mac OS Extended\) arrived with Mac OS 8.1 in 1998, enlarging) Tj
-T* (allocation identifiers to 32 bits and adopting Unicode names. HFSX is a) Tj
-T* (related format with version-specific catalog comparison semantics. A native) Tj
-T* (HFS Plus volume begins with a header at partition-relative byte 1024,) Tj
-T* (signature 0x482B and version 4; HFSX uses 0x4858 and version 5. An HFS) Tj
-T* (wrapper may contain an embedded HFS Plus volume: resolve the wrapper) Tj
-T* (allocation origin and embedded extent rather than applying the inner header) Tj
-T* (offset to the outer partition. The alternate volume header is normally 1024) Tj
-T* (bytes before the end of the inner volume. Verify both independently.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 1 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 18 Tf 43 736 Td (Contents) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 711 Td (1. History and format discrimination) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 695 Td (2. Volume header and special forks) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 679 Td (3. Fork descriptors and extent mapping) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 663 Td (4. B-tree header and node traversal) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 647 Td (5. Catalog key and records) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 631 Td (6. Object IDs, attributes and links) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 615 Td (7. Journal and volume recovery) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 599 Td (8. Implementation and qualification boundary) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 583 Td (9. Defragmentation, formatting and references) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 1) Tj ET
 endstream
 endobj
 8 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 9 0 R >>
 endobj
 9 0 obj
-<< /Length 1249 >>
+<< /Length 1839 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Volume header and special forks) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(All native integer fields are big-endian. Header offsets: signature/version) Tj
-T* (0/2, attributes 4, last mounted version 8, journal info block 12,) Tj
-T* (creation/modify/backup/check dates 16/20/24/28, files/folders 32/36,) Tj
-T* (allocation block bytes 40, total/free blocks 44/48, next allocation 52,) Tj
-T* (resource/data clump sizes 56/60, next CNID 64, write count 68, encodings) Tj
-T* (bitmap 72, Finder info 80..111. Five 80-byte fork descriptors start at 112) Tj
-T* (\(allocation file\), 192 \(extents\), 272 \(catalog\), 352 \(attributes\), 432) Tj
-T* (\(startup\). Validate block count, size, special fork ranges and feature/dirty) Tj
-T* (flags. Volume attributes include unmounted bit 8, inconsistent bit 11 and) Tj
-T* (journaled bit 13; journal existence does not prove recovery.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 2 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (1. History and format discrimination) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (HFS Plus \(Mac OS Extended\) arrived with Mac OS 8.1 in 1998, enlarging allocation) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (identifiers to 32 bits and adopting Unicode names. HFSX is a related format with) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (version-specific catalog comparison semantics. A native HFS Plus volume begins with) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (a header at partition-relative byte 1024, signature 0x482B and version 4; HFSX uses) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (0x4858 and version 5. An HFS wrapper may contain an embedded HFS Plus volume:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (resolve the wrapper allocation origin and embedded extent rather than applying the) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (inner header offset to the outer partition. The alternate volume header is normally) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (1024 bytes before the end of the inner volume. Verify both independently.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 584 Td (Apple's TN1150 identifies reduced average allocation-block waste as a major) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (motivation, along with Unicode names and larger geometry. HFSX and optional) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (journaling are distinct profiles. HFS Plus does not inherit APFS object maps or) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (snapshots.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 2) Tj ET
 endstream
 endobj
 10 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 11 0 R >>
 endobj
 11 0 obj
-<< /Length 1241 >>
+<< /Length 1569 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Fork descriptors and extent mapping) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(An 80-byte fork descriptor has 64-bit logical size at 0, clump bytes 8,) Tj
-T* (allocated block count 12 and eight extent pairs from 16; each pair contains) Tj
-T* (32-bit start and count. Allocation block n begins at n*block_bytes from the) Tj
-T* (inner volume origin. Extents-overflow key: 16-bit length 0, fork type 2, pad) Tj
-T* (3, CNID 4 and 32-bit logical start block 8. Data fork type is 0, resource) Tj
-T* (0xff. A file logical block 9 in a first run of 6 and second run of 8) Tj
-T* (starting at physical block 200 maps to block 203. With 4096-byte blocks,) Tj
-T* (byte 10 of that block maps to 831498. Check complete fork coverage, logical) Tj
-T* (EOF, extent range and overflow ordering; do not expose slack. Allocation) Tj
-T* (file bits are MSB-first, set means allocated.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 3 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (2. Volume header and special forks) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (All native integer fields are big-endian. Header offsets: signature/version 0/2,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (attributes 4, last mounted version 8, journal info block 12,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (creation/modify/backup/check dates 16/20/24/28, files/folders 32/36, allocation) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (block bytes 40, total/free blocks 44/48, next allocation 52, resource/data clump) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (sizes 56/60, next CNID 64, write count 68, encodings bitmap 72, Finder info) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (80..111. Five 80-byte fork descriptors start at 112 \(allocation file\), 192) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (\(extents\), 272 \(catalog\), 352 \(attributes\), 432 \(startup\). Validate block count,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (size, special fork ranges and feature/dirty flags. Volume attributes include) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (unmounted bit 8, inconsistent bit 11 and journaled bit 13; journal existence does) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (not prove recovery.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 3) Tj ET
 endstream
 endobj
 12 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 13 0 R >>
 endobj
 13 0 obj
-<< /Length 1252 >>
+<< /Length 1512 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (B-tree header and node traversal) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(A 14-byte node descriptor contains forward/backward node IDs at 0/4, signed) Tj
-T* (kind 8, height 9, record count 10 and reserved 12. Kinds: index 0, header 1,) Tj
-T* (map 2, leaf -1. Header node 0 begins with the descriptor then header record:) Tj
-T* (depth 0, root 2, leaf records 6, first/last leaf 10/14, node size 18, max) Tj
-T* (key length 20, total/free nodes 22/26, reserved 30, clump size 32, tree/key) Tj
-T* (type 36/37 and attributes 38. Record offsets are 16-bit big-endian values at) Tj
-T* (the end of each node, reverse order plus free-space boundary. The B-tree) Tj
-T* (file's fork maps node n at n*node_size; nodes are not direct volume block) Tj
-T* (addresses. Validate key lengths, offset ordering, map allocation, node) Tj
-T* (height, siblings and child range before traversal.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 4 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (3. Fork descriptors and extent mapping) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (An 80-byte fork descriptor has 64-bit logical size at 0, clump bytes 8, allocated) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (block count 12 and eight extent pairs from 16; each pair contains 32-bit start and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (count. Allocation block n begins at n*block_bytes from the inner volume origin.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (Extents-overflow key: 16-bit length 0, fork type 2, pad 3, CNID 4 and 32-bit) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (logical start block 8. Data fork type is 0, resource 0xff. A file logical block 9) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (in a first run of 6 and second run of 8 starting at physical block 200 maps to) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (block 203. With 4096-byte blocks, byte 10 of that block maps to 831498. Check) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (complete fork coverage, logical EOF, extent range and overflow ordering; do not) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (expose slack. Allocation file bits are MSB-first, set means allocated.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 4) Tj ET
 endstream
 endobj
 14 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 15 0 R >>
 endobj
 15 0 obj
-<< /Length 1249 >>
+<< /Length 1523 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Catalog key and records) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(A catalog key has 16-bit key length at 0, parent CNID at 2, name length in) Tj
-T* (UTF-16 units at 6 and big-endian code units from 8 \(up to 255\). Compare) Tj
-T* (using the selected native key comparison, case-folding 0xCF or binary 0xBC) Tj
-T* (where admitted. HFS Plus uses a particular Unicode decomposition/collation) Tj
-T* (version, not generic contemporary normalization. Values begin with 16-bit) Tj
-T* (type: 1 folder, 2 file, 3 folder thread, 4 file thread. A file record has) Tj
-T* (flags 2, reserved 4, CNID 8, five date fields from 12, permissions at 32,) Tj
-T* (Finder fields 48..79, text encoding 80, reserved 84, data fork 88 and) Tj
-T* (resource fork 168; total 248 bytes. Thread stores parent CNID at 4, name) Tj
-T* (length at 8. Match thread, parent, record type and unique identity.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 5 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (4. B-tree header and node traversal) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (A 14-byte node descriptor contains forward/backward node IDs at 0/4, signed kind 8,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (height 9, record count 10 and reserved 12. Kinds: index 0, header 1, map 2, leaf) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (-1. Header node 0 begins with the descriptor then header record: depth 0, root 2,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (leaf records 6, first/last leaf 10/14, node size 18, max key length 20, total/free) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (nodes 22/26, reserved 30, clump size 32, tree/key type 36/37 and attributes 38.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (Record offsets are 16-bit big-endian values at the end of each node, reverse order) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (plus free-space boundary. The B-tree file's fork maps node n at n*node_size; nodes) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (are not direct volume block addresses. Validate key lengths, offset ordering, map) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (allocation, node height, siblings and child range before traversal.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 5) Tj ET
 endstream
 endobj
 16 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 17 0 R >>
 endobj
 17 0 obj
-<< /Length 1226 >>
+<< /Length 1520 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Object IDs, attributes and links) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Root CNID is 2; extents 3, catalog 4, bad blocks 5, allocation 6, startup 7) Tj
-T* (and attributes 8; ordinary CNIDs begin at 16. Permissions encode owner,) Tj
-T* (group, flags and mode; the special field has type-dependent semantics. HFS) Tj
-T* (Plus hard links use native private-directory and special inode conventions,) Tj
-T* (not simple repeated catalog CNIDs. Directory hard links have further) Tj
-T* (restrictions. Attributes tree keys contain length, pad, CNID, start block) Tj
-T* (and Unicode attribute name; value types 0x10 inline, 0x20 fork and 0x30) Tj
-T* (extent continuation require their own mapping. Preserve resource forks,) Tj
-T* (FinderInfo, security attributes and unknown admitted metadata. Native) Tj
-T* (timestamps are seconds from 1904-01-01 UTC.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 6 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (5. Catalog key and records) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (A catalog key has 16-bit key length at 0, parent CNID at 2, name length in UTF-16) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (units at 6 and big-endian code units from 8 \(up to 255\). Compare using the selected) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (native key comparison, case-folding 0xCF or binary 0xBC where admitted. HFS Plus) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (uses a particular Unicode decomposition/collation version, not generic contemporary) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (normalization. Values begin with 16-bit type: 1 folder, 2 file, 3 folder thread, 4) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (file thread. A file record has flags 2, reserved 4, CNID 8, five date fields from) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (12, permissions at 32, Finder fields 48..79, text encoding 80, reserved 84, data) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (fork 88 and resource fork 168; total 248 bytes. Thread stores parent CNID at 4,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (name length at 8. Match thread, parent, record type and unique identity.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 6) Tj ET
 endstream
 endobj
 18 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 19 0 R >>
 endobj
 19 0 obj
-<< /Length 1291 >>
+<< /Length 1497 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Journal and volume recovery) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(For journaled media the volume header points to a journal information block) Tj
-T* (in allocation-block units. It identifies the journal storage and geometry.) Tj
-T* (Journal headers and transaction block lists have versioned byte-order,) Tj
-T* (checksum, circular-range and target-address semantics. Replay only fully) Tj
-T* (validated committed transactions and only against the matching volume;) Tj
-T* (handle external journal identity when admitted. Do not treat a clean flag, a) Tj
-T* (readable catalog or alternate header as a substitute for native replay. A) Tj
-T* (writer must order bitmap, catalog, extent, attribute and journal publication) Tj
-T* (consistently, and respect volume lock and inconsistent-state flags. Exact) Tj
-T* (journal record layouts and replay algorithms require additional) Tj
-T* (primary-reference validation.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 7 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (6. Object IDs, attributes and links) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Root CNID is 2; extents 3, catalog 4, bad blocks 5, allocation 6, startup 7 and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (attributes 8; ordinary CNIDs begin at 16. Permissions encode owner, group, flags) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (and mode; the special field has type-dependent semantics. HFS Plus hard links use) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (native private-directory and special inode conventions, not simple repeated catalog) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (CNIDs. Directory hard links have further restrictions. Attributes tree keys contain) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (length, pad, CNID, start block and Unicode attribute name; value types 0x10 inline,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (0x20 fork and 0x30 extent continuation require their own mapping. Preserve resource) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (forks, FinderInfo, security attributes and unknown admitted metadata. Native) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (timestamps are seconds from 1904-01-01 UTC.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 7) Tj ET
 endstream
 endobj
 20 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 21 0 R >>
 endobj
 21 0 obj
-<< /Length 1561 >>
+<< /Length 1603 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Defragmentation, formatting and references) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Reconstruct allocation from both forks of each file, special metadata files,) Tj
-T* (overflow records and bad-block reservations; cross-check tree maps and) Tj
-T* (volume bitmap. Relocation preserves fork identity, metadata and native link) Tj
-T* (semantics; reserve destination, copy/verify, publish mappings under native) Tj
-T* (transaction rules, then release source. Formatter must establish all special) Tj
-T* (files and tree headers/maps, root and thread records, primary/alternate) Tj
-T* (header and correct feature flags. Test native HFS Plus and HFSX fixtures,) Tj
-T* (wrapped volumes, both forks, overflow, Unicode collisions, attributes, hard) Tj
-T* (links, dirty journals and interrupted updates. Normative Apple Technical) Tj
-T* (Note TN1150:) Tj
-T* (https://developer.apple.com/library/archive/technotes/tn/tn1150.html ;) Tj
-T* (pinned cross-check https://github.com/torvalds/linux/tree/v6.12/fs/hfsplus) Tj
-T* (\(hfsplus_raw.h, btree.c, extents.c, catalog.c\). Earlier documentation is) Tj
-T* (preserved as historical evidence; writer and replay qualification are) Tj
-T* (separate.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 8 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (7. Journal and volume recovery) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (For journaled media the volume header points to a journal information block in) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (allocation-block units. It identifies the journal storage and geometry. Journal) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (headers and transaction block lists have versioned byte-order, checksum,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (circular-range and target-address semantics. Replay only fully validated committed) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (transactions and only against the matching volume; handle external journal identity) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (when admitted. Do not treat a clean flag, a readable catalog or alternate header as) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (a substitute for native replay. A writer must order bitmap, catalog, extent,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (attribute and journal publication consistently, and respect volume lock and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (inconsistent-state flags. Exact journal record layouts and replay algorithms) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (require additional primary-reference validation.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 8) Tj ET
 endstream
 endobj
 22 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 23 0 R >>
 endobj
 23 0 obj
-<< /Length 640 >>
+<< /Length 2290 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (HFSPlus - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Historical reference appendix) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The earlier manual follows for provenance. Its provider and qualification) Tj
-T* (statements are historical; the new engineering chapters take precedence for) Tj
-T* (format interpretation.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 9 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (8. Implementation and qualification boundary) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (The archived provider described hosted probe, namespace reads and format, obtaining) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (volume identity before destructive formatting. Resource forks, Unicode catalog) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (rules, journal recovery and freestanding boot need separate qualification.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (Historical workflow 45520343723 is scoped evidence, not a current capability) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (statement.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 626 Td (Common V2 is the independent provider interface:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 612 Td (https://github.com/Infiltrator-Projects/Libraries/blob/main/docs/FILESYSTEM_COMMON_) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 598 Td (ABI_V2.md . Negotiate real operation masks and media profiles. Use bounded host) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 584 Td (I/O, exclusive unmounted ownership and durable flush for mutation; distinguish) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (unsupported, corrupt, I/O and stale-handle results. Test Media and Defragmenter use) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (the same engine. Hosted, freestanding, BOOT, kernel, recovery and package) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (qualification are independent. Current capability and release status belongs to the) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (repository README and exact-source qualification records; historical evidence is) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 514 Td (not a current status claim.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 490 Td (Historical source or test reference:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 476 Td (https://github.com/Infiltrator-Projects/Filesystem-HFSPlus/actions/runs/45520343723) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 462 Td (.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 9) Tj ET
 endstream
 endobj
 24 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 25 0 R >>
 endobj
 25 0 obj
-<< /Length 2740 >>
+<< /Length 1989 >>
 stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 01) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 694.0 Tm (OFFICIAL FORMAT / CHRONOLOGY / ENGINEERING) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 650.0 Tm (Apple's 1998 successor to HFS expanded allocation addressing and Unicode names while) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 633.0 Tm (retaining B-tree catalogs and dual file forks.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 603.0 Tm (This guide documents the original format's technical architecture, history and independent) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 586.0 Tm (source references. InfiltratorOS modules and install packages are implementation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 569.0 Tm (artefacts, not the authority for the historic on-disk definition.) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 539.0 Tm (CONCEPTUAL MEDIA MAP) Tj ET
-0.05 0.36 0.47 rg 50 455 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 487.0 Tm (VOLUME HEADER) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 468.0 Tm (1024-byte offset + extents) Tj ET
-0.08 0.39 0.49 rg 301 455 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 487.0 Tm (ALLOCATION FILE) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 468.0 Tm (Bitmap of allocation blocks) Tj ET
-0.10 0.43 0.52 rg 50 373 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 405.0 Tm (CATALOG B-TREE) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 386.0 Tm (CNIDs and fork metadata) Tj ET
-0.13 0.46 0.54 rg 301 373 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 405.0 Tm (EXTENTS / ATTRIBUTES) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 386.0 Tm (Overflow and extended metadata) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 332.0 Tm (CONTENTS) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 305.0 Tm (1. Historical chronology) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 282.0 Tm (2. Original on-disk architecture) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 259.0 Tm (3. Allocation and directories) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 236.0 Tm (4. Integrity and recovery) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 213.0 Tm (5. Design rationale and limitations) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 190.0 Tm (6. InfiltratorOS integration boundary) Tj ET
-endstream
-endobj
-26 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 27 0 R >>
-endobj
-27 0 obj
-<< /Length 1751 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 02) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (HISTORICAL CHRONOLOGY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (HFS Plus arrived with Mac OS 8.1 in 1998 as Mac OS Extended. Apple retained the familiar) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (Macintosh catalog, extent and fork concepts while replacing limitations of original HFS.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (Apple's TN1150 describes smaller average allocation-block waste on larger drives as a) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (central motivation and specifies differences in filenames and metadata representation.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (During Mac OS X's lifetime, HFS Plus acquired optional journalling, hard-link handling,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (extensive permissions/attributes and the case-sensitive HFSX variant. APFS later replaced) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (it as the preferred modern Apple filesystem on many devices. HFS Plus and HFSX must be) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (identified as distinct modes and not treated as identical to original HFS.) Tj ET
-endstream
-endobj
-28 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 29 0 R >>
-endobj
-29 0 obj
-<< /Length 1746 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 03) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ORIGINAL ON-DISK ARCHITECTURE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The HFS Plus Volume Header is located 1024 bytes from the start of the volume. The format) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (organises its special metadata as files: allocation, catalog, extents overflow, attributes) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (and startup files, alongside user file forks. The catalog, extents and attributes) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (structures use B-trees with node sizes and key formats specified by the format.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (HFS Plus identifies allocation blocks with 32-bit numbers, permitting many more allocation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (units than original HFS. Multi-byte fields are big-endian. File and folder identifiers are) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (CNIDs. Fork data descriptors include logical size, clump size, allocated blocks and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (extents, while overflow records extend the on-inode extent capacity.) Tj ET
-endstream
-endobj
-30 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 31 0 R >>
-endobj
-31 0 obj
-<< /Length 1800 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 04) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ALLOCATION AND DIRECTORIES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The allocation file records used blocks, while the catalog B-tree maps parent IDs and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (Unicode names to file and directory records. HFS Plus names use a 16-bit length and up to) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (255 UTF-16 code units with a version-specific canonical decomposition/collation scheme. A) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (normal Unicode casefold or current host locale is not equivalent to Apple's defined) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 608.0 Tm (comparison algorithm.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (A file retains both data and resource forks. Attributes B-trees can contain additional) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (named metadata. HFSX adds support for case-sensitive keys and specific comparison rules.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (Hard links and symbolic links in Mac OS X use defined catalog and metadata-directory) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (conventions rather than raw Unix inodes.) Tj ET
-endstream
-endobj
-32 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 33 0 R >>
-endobj
-33 0 obj
-<< /Length 1739 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 05) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INTEGRITY AND RECOVERY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The optional journal records metadata updates and permits quicker repair after an unsafe) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (shutdown. Apple's technical note makes clear that the journal is for volume structures,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (not a guarantee of full user-data persistence. Journal replay must preserve transaction) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (order and issue flushes before advancing the journal start pointer.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (A full checker validates catalog and extents tree nodes, CNIDs, link counts, allocation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (ownership, journal state and fork extents. Duplicate or orphaned metadata-directory) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (entries and mismatched attribute records need special handling. Journal existence does not) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (eliminate the possibility of damaged metadata or lost data during storage faults.) Tj ET
-endstream
-endobj
-34 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 35 0 R >>
-endobj
-35 0 obj
-<< /Length 1683 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 06) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (DESIGN RATIONALE AND LIMITATIONS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (HFS Plus solves several practical HFS limits while retaining compatibility with Macintosh) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (dual-fork and Finder conventions. Its Unicode rules are historically specific and can) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (differ from modern Unicode normalization. Integer timestamps use a 1904 epoch and have) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (representational limits; time conversion must not assume Unix epochs.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (It is a mutable B-tree format, not intrinsically copy-on-write. The case-sensitive HFSX) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (variant and optional journal require explicit detection. APFS snapshots, encryption) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (domains and object maps cannot be projected backward onto HFS Plus merely because both are) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (Apple-designed.) Tj ET
-endstream
-endobj
-36 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 37 0 R >>
-endobj
-37 0 obj
-<< /Length 1432 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 07) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INFILTRATOROS INTEGRATION BOUNDARY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (HFSPLUS.so must respect Apple's HFS Plus Volume Format specification including big-endian) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (structures, catalog keys, forks and allocation bitmap. Any HFSX support must be specified) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (separately; shared implementation code does not make every HFS Plus volume case-sensitive.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 612.0 Tm (The exact Apple TN1150 document is the primary technical authority. Native `.so`, optional) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (Linux `.ko` and InfiltratorOS packaging are separate from the on-media standard and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (require independent qualification.) Tj ET
-endstream
-endobj
-38 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 39 0 R >>
-endobj
-39 0 obj
-<< /Length 2015 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (HFS Plus - Mac OS Extended format) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-HFSPlus / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 08) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (PRIMARY SOURCE REFERENCES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (These primary technical documents and near-contemporary references provide provenance for) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (the design history and on-disk structures. For exact field sizes or a particular format) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (revision, consult the original specifications and source code, not the conceptual cover) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (illustration.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (1. Apple TN1150, HFS Plus Volume Format \(on-disk normative description\)) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 565.0 Tm (https://developer.apple.com/library/archive/technotes/tn/tn1150.html) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 535.0 Tm (2. Contemporary introduction to original Macintosh HFS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 505.0 Tm (https://preserve.mactech.com/articles/mactech/Vol.02/02.01/HFS/index.html) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our Common V2 .so, build procedures and test evidence describe a separate) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source-level history in this PDF cannot itself qualify production) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
-endstream
-endobj
-40 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 41 0 R >>
-endobj
-41 0 obj
-<< /Length 2644 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
-BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (HFSPlus / engineering detail) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 09) Tj ET
-BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (DISK READ PATH / ENGINEERING NOTES) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Locate the HFS Plus volume header and verify its signature, version, allocation block) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (size, file counts and special-file fork descriptors.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. Read the allocation file to discover free blocks; the catalog, extents overflow,) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (attributes and startup files each have different roles.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. Traverse the catalog B-tree for folders, files and thread records. File records hold) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (both data-fork and resource-fork descriptions.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. Resolve the first extents of each fork in its catalog record, then use the extents) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (overflow B-tree for further extents.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. Read the attributes B-tree for supported extended-attribute storage. Its records must) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (not be confused with ordinary catalog entries.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. Interpret names using HFS Plus Unicode normalisation and comparison rules. A host OS's) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (default Unicode casefolding is not guaranteed to match the disk format.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 420 Tm (7. Distinguish journaled HFS Plus and case-sensitive variants by their actual on-media) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (attributes, not a generic 'Mac OS Extended' label.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 377 Tm (8. Use the alternate volume header for corroboration, but verify its generation and) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (fields rather than assuming it is a full snapshot of the filesystem.) Tj ET
-endstream
-endobj
-42 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 43 0 R >>
-endobj
-43 0 obj
-<< /Length 2578 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
-BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (HFSPlus / engineering detail) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 10) Tj ET
-BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (VALIDATION, RECOVERY AND COMPATIBILITY) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Verify catalog and extent B-tree headers, node records, ordering and consistency) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (between file records and thread records.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. Cross-check allocation bitmap state with all fork extents, including resource forks) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (and special metadata files.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. A file with an empty data fork may still have important resource-fork contents,) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (extended attributes and Finder metadata.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. If journaling is enabled, assess the journal's transaction state before modifying) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (allocation or catalog metadata.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. Preserve the disk's name comparison rules. Renaming or creating a file with) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (host-normalised characters can create collisions invisible to an incompatible reader.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. Validate extent lengths and allocation-block bounds before translating a logical file) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (position to a physical address.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 420 Tm (7. Classic HFS and HFS Plus use different allocation and catalog layouts; a conversion) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (history does not make their on-disk data interchangeable.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 377 Tm (8. Keep format-level verification separate from macOS features layered above it, such as) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (application metadata conventions or boot system policies.) Tj ET
-endstream
-endobj
-44 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 45 0 R >>
-endobj
-45 0 obj
-<< /Length 2369 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801 Tm (INFILTRATOR / IMPLEMENTATION REFERENCE) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771 Tm (HFSPlus / Common V2 provider) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34 Tm (Implementation appendix / source revision ee1fd89a4c72) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 505 34 Tm (PAGE 11) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 710 Tm (1. PURPOSE AND FORMAT SCOPE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 686 Tm (Apple HFS Plus, distinct from classic HFS. This repository owns the) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 671 Tm (format-specific implementation of HFSPLUS.so for InfiltratorOS.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 641 Tm (2. ON-DISK ARCHITECTURE AND INVARIANTS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 617 Tm (The volume header, allocation file, extents overflow and catalog B-tree) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 602 Tm (define the volume. Interpret Unicode catalog keys and extent mappings) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 587 Tm (according to the actual format, not HFS Pascal-name conventions.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 557 Tm (3. COMMON V2 IMPLEMENTATION AND CAPABILITIES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 533 Tm (The current hosted descriptor declares probe, mount, stat, directory) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 518 Tm (enumeration, file read and format. The implementation acquires volume) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 503 Tm (identity before destructive formatting. Hosted and freestanding) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 488 Tm (qualification workflows are present. The canonical entry point is) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 473 Tm (infiltrator_filesystem_api_v2. Consumers must negotiate the actual profile) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458 Tm (and operation masks and use bounded, partition-relative host I/O. A) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 443 Tm (source-level callback does not by itself establish that every format) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 428 Tm (variant or host profile is qualified.) Tj ET
-endstream
-endobj
-46 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 47 0 R >>
-endobj
-47 0 obj
-<< /Length 3643 >>
-stream
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801 Tm (INFILTRATOR / IMPLEMENTATION REFERENCE) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771 Tm (HFSPlus / Common V2 provider) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34 Tm (Implementation appendix / source revision ee1fd89a4c72) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 505 34 Tm (PAGE 12) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 710 Tm (4. INTEGRITY, MUTATION, ALLOCATION AND RECOVERY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 686 Tm (A freestanding build is not a production BOOT handoff guarantee. Check) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 671 Tm (profile masks, supported catalog features, resource forks and mutation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 656 Tm (limitations before claiming compatibility. For destructive operations,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 641 Tm (require the applicable exclusive writable host, durability contract and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 626 Tm (format-specific validation. Never silently substitute a kernel or FUSE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 611 Tm (driver or treat a rejected or unavailable operation as success. Preserve) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 596 Tm (original disk-format semantics; relocation and recovery are separate from) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 581 Tm (ordinary file I/O.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 551 Tm (5. BUILD, INSTALLATION AND RELEASE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527 Tm (The target installation is /System/Filesystems/HFSPLUS.so and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 512 Tm (/System/Resources/Documentation/Filesystem-HFSPlus.pdf. The project) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 497 Tm (release policy is a portable amd64 DEB and a CPU-native source-first RUN,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 482 Tm (with GitHub's automatic source archive; do not treat this policy statement) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 467 Tm (as verification of the current installer payload. The release workflow is) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 452 Tm (the authoritative executable build and package specification. Historical) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 437 Tm (adapters and test artifacts are not additional production filesystem) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 422 Tm (authorities.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 392 Tm (6. QUALIFICATION AND LIMITATIONS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 368 Tm (Recorded qualification workflow) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 353 Tm (\(https://github.com/Infiltrator-Projects/Filesystem-HFSPlus/actions/runs/4) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 338 Tm (5520343723\) | Current workflows) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 323 Tm (\(https://github.com/Infiltrator-Projects/Filesystem-HFSPlus/actions?query=) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 308 Tm (branch%3Amain\). A successful workflow establishes the tested scope only,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 293 Tm (not complete original-format parity, physical-media crash safety, or) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 278 Tm (production BOOT/kernel integration. Use disposable images for destructive) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 263 Tm (qualification.) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (HFSPlus - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (9. Defragmentation, formatting and references) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Reconstruct allocation from both forks of each file, special metadata files,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (overflow records and bad-block reservations; cross-check tree maps and volume) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (bitmap. Relocation preserves fork identity, metadata and native link semantics;) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (reserve destination, copy/verify, publish mappings under native transaction rules,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (then release source. Formatter must establish all special files and tree) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (headers/maps, root and thread records, primary/alternate header and correct feature) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (flags. Test native HFS Plus and HFSX fixtures, wrapped volumes, both forks,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (overflow, Unicode collisions, attributes, hard links, dirty journals and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (interrupted updates. Normative Apple Technical Note TN1150:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (https://developer.apple.com/library/archive/technotes/tn/tn1150.html ; pinned) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 566 Td (cross-check https://github.com/torvalds/linux/tree/v6.12/fs/hfsplus \(hfsplus_raw.h,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 552 Td (btree.c, extents.c, catalog.c\). Earlier documentation is preserved as historical) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 538 Td (evidence; writer and replay qualification are separate.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 10) Tj ET
 endstream
 endobj
 xref
-0 48
+0 26
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
-0000000255 00000 n 
-0000000325 00000 n 
-0000000400 00000 n 
-0000000468 00000 n 
-0000000614 00000 n 
-0000001835 00000 n 
-0000001981 00000 n 
-0000003281 00000 n 
-0000003429 00000 n 
-0000004722 00000 n 
-0000004870 00000 n 
-0000006174 00000 n 
-0000006322 00000 n 
-0000007623 00000 n 
-0000007771 00000 n 
-0000009049 00000 n 
-0000009197 00000 n 
-0000010540 00000 n 
-0000010688 00000 n 
-0000012301 00000 n 
-0000012449 00000 n 
-0000013140 00000 n 
-0000013288 00000 n 
-0000016080 00000 n 
-0000016228 00000 n 
-0000018031 00000 n 
-0000018179 00000 n 
-0000019977 00000 n 
-0000020125 00000 n 
-0000021977 00000 n 
-0000022125 00000 n 
-0000023916 00000 n 
-0000024064 00000 n 
-0000025799 00000 n 
-0000025947 00000 n 
-0000027431 00000 n 
-0000027579 00000 n 
-0000029646 00000 n 
-0000029794 00000 n 
-0000032490 00000 n 
-0000032638 00000 n 
-0000035268 00000 n 
-0000035416 00000 n 
-0000037837 00000 n 
-0000037985 00000 n 
+0000000178 00000 n 
+0000000248 00000 n 
+0000000323 00000 n 
+0000000391 00000 n 
+0000000537 00000 n 
+0000001690 00000 n 
+0000001836 00000 n 
+0000003726 00000 n 
+0000003874 00000 n 
+0000005495 00000 n 
+0000005643 00000 n 
+0000007207 00000 n 
+0000007355 00000 n 
+0000008930 00000 n 
+0000009078 00000 n 
+0000010650 00000 n 
+0000010798 00000 n 
+0000012347 00000 n 
+0000012495 00000 n 
+0000014150 00000 n 
+0000014298 00000 n 
+0000016640 00000 n 
+0000016788 00000 n 
 trailer
-<< /Size 48 /Root 1 0 R >>
+<< /Size 26 /Root 1 0 R >>
 startxref
-41680
+18829
 %%EOF

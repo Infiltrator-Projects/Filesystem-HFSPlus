@@ -4,6 +4,8 @@
 
 HFS Plus (Mac OS Extended) arrived with Mac OS 8.1 in 1998, enlarging allocation identifiers to 32 bits and adopting Unicode names. HFSX is a related format with version-specific catalog comparison semantics. A native HFS Plus volume begins with a header at partition-relative byte 1024, signature 0x482B and version 4; HFSX uses 0x4858 and version 5. An HFS wrapper may contain an embedded HFS Plus volume: resolve the wrapper allocation origin and embedded extent rather than applying the inner header offset to the outer partition. The alternate volume header is normally 1024 bytes before the end of the inner volume. Verify both independently.
 
+Apple's TN1150 identifies reduced average allocation-block waste as a major motivation, along with Unicode names and larger geometry. HFSX and optional journaling are distinct profiles. HFS Plus does not inherit APFS object maps or snapshots.
+
 ## Volume header and special forks
 
 All native integer fields are big-endian. Header offsets: signature/version 0/2, attributes 4, last mounted version 8, journal info block 12, creation/modify/backup/check dates 16/20/24/28, files/folders 32/36, allocation block bytes 40, total/free blocks 44/48, next allocation 52, resource/data clump sizes 56/60, next CNID 64, write count 68, encodings bitmap 72, Finder info 80..111. Five 80-byte fork descriptors start at 112 (allocation file), 192 (extents), 272 (catalog), 352 (attributes), 432 (startup). Validate block count, size, special fork ranges and feature/dirty flags. Volume attributes include unmounted bit 8, inconsistent bit 11 and journaled bit 13; journal existence does not prove recovery.
@@ -27,6 +29,14 @@ Root CNID is 2; extents 3, catalog 4, bad blocks 5, allocation 6, startup 7 and 
 ## Journal and volume recovery
 
 For journaled media the volume header points to a journal information block in allocation-block units. It identifies the journal storage and geometry. Journal headers and transaction block lists have versioned byte-order, checksum, circular-range and target-address semantics. Replay only fully validated committed transactions and only against the matching volume; handle external journal identity when admitted. Do not treat a clean flag, a readable catalog or alternate header as a substitute for native replay. A writer must order bitmap, catalog, extent, attribute and journal publication consistently, and respect volume lock and inconsistent-state flags. Exact journal record layouts and replay algorithms require additional primary-reference validation.
+
+## Implementation and qualification boundary
+
+The archived provider described hosted probe, namespace reads and format, obtaining volume identity before destructive formatting. Resource forks, Unicode catalog rules, journal recovery and freestanding boot need separate qualification. Historical workflow 45520343723 is scoped evidence, not a current capability statement.
+
+Common V2 is the independent provider interface: https://github.com/Infiltrator-Projects/Libraries/blob/main/docs/FILESYSTEM_COMMON_ABI_V2.md . Negotiate real operation masks and media profiles. Use bounded host I/O, exclusive unmounted ownership and durable flush for mutation; distinguish unsupported, corrupt, I/O and stale-handle results. Test Media and Defragmenter use the same engine. Hosted, freestanding, BOOT, kernel, recovery and package qualification are independent. Current capability and release status belongs to the repository README and exact-source qualification records; historical evidence is not a current status claim.
+
+Historical source or test reference: https://github.com/Infiltrator-Projects/Filesystem-HFSPlus/actions/runs/45520343723 .
 
 ## Defragmentation, formatting and references
 
